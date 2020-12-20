@@ -1,12 +1,17 @@
 package dependency.injection.core;
 
+import org.objenesis.ObjenesisHelper;
+
 import java.lang.reflect.Constructor;
 import java.util.*;
+import java.util.function.Supplier;
+
+import static dependency.injection.core.DependencyManager.createInstance;
 
 public class DependencyResolver {
-
-    public static void init(HashMap<Class, Constructor> classConstructorHashMap) throws Exception {
-        HashMap<Class,Boolean> scannedClasses = new HashMap<>();
+    private static HashMap<Class, Boolean> scannedClasses;
+    public static void init(HashMap<Class, Supplier> classConstructorHashMap) throws Exception {
+        scannedClasses = new HashMap<>();
         for (Class clazz :ClassScanner.scan()) {
             scannedClasses.putIfAbsent(clazz, false);
         }
@@ -15,7 +20,14 @@ public class DependencyResolver {
         }
     }
 
-    public static void verifyClassDependencies(HashMap<Class,Constructor> ctors,HashMap<Class, Boolean> classes,Class clazz) {
+    public static void verifyClassDependencies(HashMap<Class,Supplier> ctors,Class clazz){
+        verifyClassDependencies(ctors,scannedClasses,clazz);
+    }
+
+    public static void verifyClassDependencies(HashMap<Class,Supplier> ctors,HashMap<Class, Boolean> classes,Class clazz) {
+        if (scannedClasses == null){
+            scannedClasses = classes;
+        }
         List<Constructor> constructors = Arrays.asList(clazz.getDeclaredConstructors());
         Constructor constructor;
 
@@ -51,6 +63,25 @@ public class DependencyResolver {
         }
 
         classes.put(clazz, true);
-        ctors.put(clazz, constructor);
+        ctors.put(clazz, ()-> {
+            try {
+                if (constructor == null){
+                    return ObjenesisHelper.newInstance(clazz);
+                }
+                Object[] contructorArgs = new Object[constructor.getParameterCount()];
+                Class[] parameterTypes=constructor.getParameterTypes();
+                for (int i = 0; i < constructor.getParameterCount(); i++) {
+                    contructorArgs[i] =  createInstance(parameterTypes[i]);
+                }
+                return constructor.newInstance(contructorArgs);
+
+            }catch (Exception e){
+                return null;
+            }
+        });
+    }
+
+    protected static void addClassToScannedClasses(Class clazz){
+        scannedClasses.putIfAbsent(clazz, false);
     }
 }

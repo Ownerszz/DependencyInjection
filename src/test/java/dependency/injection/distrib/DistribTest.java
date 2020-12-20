@@ -14,7 +14,12 @@ public class DistribTest {
 
     @BeforeClass
     public static void setup() throws Exception {
+        String name = DistribDependencyRegistration.class.getName();
+        Class clazz = Thread.currentThread().getContextClassLoader().loadClass(name);
         DependencyManager.use(UsableClassesGenerator.generateConstructors());
+        DependencyManager.forceRegisterClass(clazz);
+        DependencyManager.invokeRegistrators();
+
     }
 
     @Test

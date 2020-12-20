@@ -1,18 +1,15 @@
 package dependency.injection.distrib;
 
 import dependency.injection.core.Dependency;
+import org.junit.Test;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Dependency
-@Retention(RetentionPolicy.RUNTIME)
+@Dependency(runnable = true)
 @Target(ElementType.TYPE)
-public @interface Stub {
-    String skeletonAddress();
-    int skeletonPort();
-    String resultAddress() default "";
-    int resultPort() default -1;
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Skeleton {
 }

@@ -5,6 +5,7 @@ import dependency.injection.core.DependencyResolver;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 public class UsableClassesGenerator {
     public static HashMap<Class, Boolean> generateClasses() throws Exception{
@@ -16,10 +17,13 @@ public class UsableClassesGenerator {
         }
         return temp;
     }
-    public static HashMap<Class, Constructor>  generateConstructors() throws Exception{
-        HashMap<Class, Constructor> constructors = new HashMap<>();
+    public static HashMap<Class, Supplier>  generateConstructors() throws Exception{
+        HashMap<Class, Supplier> constructors = new HashMap<>();
         HashMap<Class, Boolean> generatedClasses = generateClasses();
         for (Class clazz:generatedClasses.keySet()) {
+            if (clazz.getName().contains("DistribRegistration")){
+                System.out.println("found it");
+            }
             DependencyResolver.verifyClassDependencies(constructors,generatedClasses,clazz);
         }
         return constructors;

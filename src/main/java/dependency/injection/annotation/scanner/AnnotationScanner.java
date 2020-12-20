@@ -99,6 +99,7 @@ public class AnnotationScanner {
     }
 
     public static List<Annotation> getAnnotationsOfClass(Class<?> clazz){
+        List<Annotation> annotations = knownAnnotations.get(clazz);
        return Collections.unmodifiableList(knownAnnotations.get(clazz));
     }
 
@@ -131,6 +132,7 @@ public class AnnotationScanner {
                 logger.warn("Failed to resolve class: " + clazz.getName() + " because it is too deep for us to resolve it.");
             }
         }
+        slowClasses.clear();
     }
 
 }

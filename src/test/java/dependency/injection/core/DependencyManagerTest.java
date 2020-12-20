@@ -2,6 +2,7 @@ package dependency.injection.core;
 
 import be.kdg.distrib.skeletonFactory.Skeleton;
 import dependency.injection.core.DependencyManager;
+import dependency.injection.distrib.DistribDependencyRegistration;
 import dependency.injection.distrib.SkeletonImpl;
 import dependency.injection.distrib.Stubbed;
 import dependency.injection.model.TestObject;
@@ -18,6 +19,8 @@ public class DependencyManagerTest {
     @BeforeClass
     public static void setup() throws Exception {
         DependencyManager.use(UsableClassesGenerator.generateConstructors());
+        DependencyManager.forceRegisterClass(DistribDependencyRegistration.class);
+        DependencyManager.invokeRegistrators();
 
     }
 

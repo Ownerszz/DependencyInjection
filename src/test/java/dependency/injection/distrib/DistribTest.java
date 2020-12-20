@@ -4,6 +4,7 @@ import be.kdg.distrib.skeletonFactory.Skeleton;
 import be.kdg.distrib.stubFactory.StubFactory;
 import dependency.injection.core.DependencyManager;
 import dependency.injection.util.UsableClassesGenerator;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -38,5 +39,9 @@ public class DistribTest {
         assertEquals("hey",stubbed.getS());
     }
 
+    @AfterClass
+    public static void tearDown(){
+        DependencyManager.refreshContext();
+    }
 
 }

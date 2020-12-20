@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import static dependency.injection.core.DependencyManager.createInstance;
 
+
 public class DependencyResolver {
     private static HashMap<Class, Boolean> scannedClasses;
     public static void init(HashMap<Class, Supplier> classConstructorHashMap) throws Exception {

@@ -1,8 +1,17 @@
 package dependency.injection.core;
 
+import net.sf.cglib.beans.BeanCopier;
+import net.sf.cglib.beans.BeanGenerator;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.FixedValue;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.NoOp;
 import org.objenesis.ObjenesisHelper;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -25,7 +34,7 @@ public class DependencyResolver {
         verifyClassDependencies(ctors,scannedClasses,clazz);
     }
 
-    public static void verifyClassDependencies(HashMap<Class,Supplier> ctors,HashMap<Class, Boolean> classes,Class clazz) {
+    public static<T> void verifyClassDependencies(HashMap<Class,Supplier> ctors,HashMap<Class, Boolean> classes,Class<T> clazz) {
         if (scannedClasses == null){
             scannedClasses = classes;
         }
@@ -67,7 +76,13 @@ public class DependencyResolver {
         ctors.put(clazz, ()-> {
             try {
                 if (constructor == null){
-                    return ObjenesisHelper.newInstance(clazz);
+                    if (clazz.isInterface()){
+                        T instance = CustomizedProxyGenerator.createInterfaceInstance(clazz);
+                        return instance;
+                        //return clazz.cast(ObjenesisHelper.newInstance(instance));
+                    }else {
+                        return ObjenesisHelper.newInstance(clazz);
+                    }
                 }
                 Object[] contructorArgs = new Object[constructor.getParameterCount()];
                 Class[] parameterTypes=constructor.getParameterTypes();
@@ -77,9 +92,11 @@ public class DependencyResolver {
                 return constructor.newInstance(contructorArgs);
 
             }catch (Exception e){
+                e.printStackTrace();
                 return null;
             }
         });
+
     }
 
     protected static void addClassToScannedClasses(Class clazz){

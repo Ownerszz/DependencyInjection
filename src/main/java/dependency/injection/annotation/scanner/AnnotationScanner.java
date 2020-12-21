@@ -1,6 +1,7 @@
 package dependency.injection.annotation.scanner;
 
 import dependency.injection.core.Dependency;
+import org.objenesis.ObjenesisHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,6 +110,15 @@ public class AnnotationScanner {
     }
     public static <A> A getAnnotation(Class<?> clazz, Class<?> annotation){
         List<Annotation> found = knownAnnotations.get(clazz);
+        if (found == null){
+            found = new ArrayList<>();
+            for (Class interfaze: clazz.getInterfaces()) {
+                found.add(getAnnotation(interfaze,annotation));
+            }
+            if (found.size() == 0){
+                throw new RuntimeException("Annotation: "+ annotation.getName() + " not found in: " + clazz.getName());
+            }
+        }
         Annotation result = null;
         for (Annotation possibleAnnotation: found) {
             Class<Annotation> annotationClass = (Class<Annotation>) possibleAnnotation.annotationType();

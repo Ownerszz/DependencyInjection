@@ -39,6 +39,25 @@ public class DistribTest {
         assertEquals("hey",stubbed.getS());
     }
 
+    @Test
+    public void createSkeleton() throws Exception{
+        Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
+        assertNotNull(skeleton);
+    }
+
+    @Test
+    public void skeletonIsSingleton() throws Exception{
+        Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
+        Skeleton skeleton2 = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
+        assertEquals(skeleton.getAddress(), skeleton2.getAddress());
+    }
+
+    @Test
+    public void createStub() throws Exception{
+        Stubbed stubbed = (Stubbed) DependencyManager.createInstance(Stubbed.class);
+        assertNotNull(stubbed);
+    }
+
     @AfterClass
     public static void tearDown(){
         DependencyManager.refreshContext();

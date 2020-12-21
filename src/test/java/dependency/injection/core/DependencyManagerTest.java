@@ -9,8 +9,13 @@ import dependency.injection.model.TestObject;
 import dependency.injection.model.TestObjectWithResolvableConstructor;
 import dependency.injection.model.deep.dependencies.TestObjectWithDeepDependencies;
 import dependency.injection.util.UsableClassesGenerator;
+import net.sf.cglib.proxy.*;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.objenesis.ObjenesisHelper;
+
+import java.lang.reflect.Method;
 
 import static org.junit.Assert.*;
 
@@ -19,9 +24,7 @@ public class DependencyManagerTest {
     @BeforeClass
     public static void setup() throws Exception {
         DependencyManager.use(UsableClassesGenerator.generateConstructors());
-        DependencyManager.forceRegisterClass(DistribDependencyRegistration.class);
         DependencyManager.invokeRegistrators();
-
     }
 
     @Test
@@ -41,20 +44,22 @@ public class DependencyManagerTest {
         assertNotNull(test);
     }
 
-    @Test
-    public void createSkeleton() throws Exception{
-        Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
-        assertNotNull(skeleton);
-    }
+
 
     @Test
-    public void createStub() throws Exception{
-        Stubbed stubbed = (Stubbed) DependencyManager.createInstance(Stubbed.class);
-        assertNotNull(stubbed);
+    public void runRunnableInstances() throws Exception {
+        DependencyManager.runRunnableDependencies();
     }
+
+
 
     @Test
     public void run() throws Exception{
         DependencyManager.run(false);
+    }
+
+    @AfterClass
+    public static void tearDown(){
+        DependencyManager.refreshContext();
     }
 }

@@ -7,4 +7,5 @@ import java.lang.annotation.*;
 @Inherited
 public @interface Dependency {
     boolean runnable() default false;
+    DependencyLifecycle lifecycle() default DependencyLifecycle.TRANSIENT;
 }

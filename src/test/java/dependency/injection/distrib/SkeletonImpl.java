@@ -1,5 +1,7 @@
 package dependency.injection.distrib;
 
+import dependency.injection.core.Dependency;
+import dependency.injection.core.DependencyLifecycle;
 import dependency.injection.core.ResolveDependencies;
 import dependency.injection.model.TestObject;
 import dependency.injection.model.deep.dependencies.TestObjectWithDeepDependencies;

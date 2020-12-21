@@ -18,7 +18,7 @@ public class DistribDependencyRegistration {
         dependencyManager.registerPoxyOnAnnotation(Stub.class, interfaze ->{
             Stub ann = AnnotationScanner.getAnnotation(interfaze.getClass(), Stub.class);
             if(ann.resultAddress().equals("")){
-                return StubFactory.createStub(interfaze.getClass(), ann.skeletonAddress(), ann.skeletonPort());
+                return StubFactory.createStub(interfaze.getClass().getInterfaces()[0], ann.skeletonAddress(), ann.skeletonPort());
             }else {
                 return StubFactory.createStub(interfaze.getClass(), ann.skeletonAddress(), ann.skeletonPort(), ann.resultAddress(),ann.resultPort());
             }

@@ -1,11 +1,6 @@
 package dependency.injection.core;
 
-import net.sf.cglib.beans.BeanCopier;
-import net.sf.cglib.beans.BeanGenerator;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.FixedValue;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.NoOp;
+
 import org.objenesis.ObjenesisHelper;
 
 import java.lang.reflect.Constructor;
@@ -77,7 +72,7 @@ public class DependencyResolver {
             try {
                 if (constructor == null){
                     if (clazz.isInterface()){
-                        T instance = CustomizedProxyGenerator.createInterfaceInstance(clazz);
+                        Object instance = CustomizedProxyGenerator.createInterfaceInstance(clazz);
                         return instance;
                         //return clazz.cast(ObjenesisHelper.newInstance(instance));
                     }else {

@@ -5,7 +5,6 @@ import be.kdg.distrib.skeletonFactory.SkeletonFactory;
 import be.kdg.distrib.stubFactory.StubFactory;
 import dependency.injection.annotation.scanner.AnnotationScanner;
 
-import net.sf.cglib.proxy.Enhancer;
 import org.objenesis.ObjenesisHelper;
 
 import java.lang.annotation.Annotation;

@@ -16,11 +16,11 @@ public class DistribDependencyRegistration {
         //dependencyManager.toString();
         dependencyManager.registerPoxyOnAnnotation(Skeleton.class, SkeletonFactory::createSkeleton);
         dependencyManager.registerPoxyOnAnnotation(Stub.class, interfaze ->{
-            Stub ann = AnnotationScanner.getAnnotation(interfaze.getClass(), Stub.class);
+            Stub ann = AnnotationScanner.getAnnotation((Class<?>) interfaze, Stub.class);
             if(ann.resultAddress().equals("")){
-                return StubFactory.createStub(interfaze.getClass().getInterfaces()[0], ann.skeletonAddress(), ann.skeletonPort());
+                return StubFactory.createStub((Class<?>) interfaze, ann.skeletonAddress(), ann.skeletonPort());
             }else {
-                return StubFactory.createStub(interfaze.getClass(), ann.skeletonAddress(), ann.skeletonPort(), ann.resultAddress(),ann.resultPort());
+                return StubFactory.createStub((Class<?>) interfaze, ann.skeletonAddress(), ann.skeletonPort(), ann.resultAddress(),ann.resultPort());
             }
         } );
     }

@@ -9,7 +9,7 @@ import dependency.injection.model.TestObject;
 import dependency.injection.model.TestObjectWithResolvableConstructor;
 import dependency.injection.model.deep.dependencies.TestObjectWithDeepDependencies;
 import dependency.injection.util.UsableClassesGenerator;
-import net.sf.cglib.proxy.*;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

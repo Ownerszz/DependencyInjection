@@ -1,12 +1,13 @@
 package dependency.injection.core;
 
-import net.sf.cglib.beans.BeanGenerator;
+/*import net.sf.cglib.beans.BeanGenerator;
 import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.NoOp;
+import net.sf.cglib.proxy.NoOp;*/
 
 public class CustomizedProxyGenerator {
-    public static<T> T createInterfaceInstance(Class<T> interfaze){
-        Enhancer enhancer = new Enhancer();
+    public static Object createInterfaceInstance(Class interfaze){
+        //TODO: Maybe in the future we will need this
+        /*Enhancer enhancer = new Enhancer();
         enhancer.setClassLoader(Thread.currentThread().getContextClassLoader());
         enhancer.setCallbackType(NoOp.class);
         enhancer.setSuperclass(interfaze);
@@ -17,6 +18,7 @@ public class CustomizedProxyGenerator {
         enhancer.setInterceptDuringConstruction( false );
         //Class<T> temp = (Class<T>) enhancer.createClass();
         //T instance = (T) enhancer.create();
-        return  (T) enhancer.create();
+        return  (T) enhancer.create();*/
+        return interfaze;
     }
 }

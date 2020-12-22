@@ -1,8 +1,7 @@
 package dependency.injection.core;
 
 
-import be.kdg.distrib.skeletonFactory.SkeletonFactory;
-import be.kdg.distrib.stubFactory.StubFactory;
+
 import dependency.injection.annotation.scanner.AnnotationScanner;
 
 import org.objenesis.ObjenesisHelper;
@@ -76,6 +75,7 @@ public class DependencyManager {
                     threadPoolExecutor.submit(toRun);
                 }
             }
+            runnableDependenciesRunned = true;
         }
     }
 

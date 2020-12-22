@@ -15,9 +15,6 @@ public class AnnotationScanner {
     private static List<Class> slowClasses = new ArrayList<>();
     private static final Logger logger = LoggerFactory.getLogger(AnnotationScanner.class);
     public static Boolean isResolvable(Class<?> clazz, int depth){
-        if (clazz.getName().contains("DistribRegistration")){
-            System.out.println("found it");
-        }
         if (depth == 10){
             slowClasses.add(clazz);
             resolvedClasses.put(clazz, null);

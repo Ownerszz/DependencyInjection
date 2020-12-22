@@ -21,9 +21,6 @@ public class UsableClassesGenerator {
         HashMap<Class, Supplier> constructors = new HashMap<>();
         HashMap<Class, Boolean> generatedClasses = generateClasses();
         for (Class clazz:generatedClasses.keySet()) {
-            if (clazz.getName().contains("DistribRegistration")){
-                System.out.println("found it");
-            }
             DependencyResolver.verifyClassDependencies(constructors,generatedClasses,clazz);
         }
         return constructors;

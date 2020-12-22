@@ -26,6 +26,7 @@ public class DependencyManager {
     private static HashMap<Class<Annotation>, Function<Object, Object>> annotationsToProxy;
     private static HashMap<Class, DependencyLifecycle> dependencyLifecycleHashMap;
     private static HashMap<Class, Object> singletons;
+    private static HashMap<Class, Object> preProxyInstances;
     private static ThreadPoolExecutor threadPoolExecutor;
     private static boolean registratorsRunned = false;
     private static boolean runnableDependenciesRunned = false;
@@ -38,14 +39,18 @@ public class DependencyManager {
         annotationsToProxy = new HashMap<>();
         dependencyLifecycleHashMap = new HashMap<>();
         singletons = new HashMap<>();
+        preProxyInstances = new HashMap<>();
         forceRegisterClass(DependencyManager.class);
     }
     //Always static
-    public static void run(boolean selfInit) throws Exception {
+    public static void run(boolean selfInit) throws Throwable {
         if (selfInit){
             classSupplierHashMap = new HashMap<>();
             proxyHandlers = new HashMap<>();
             annotationsToProxy = new HashMap<>();
+            dependencyLifecycleHashMap = new HashMap<>();
+            singletons = new HashMap<>();
+            preProxyInstances = new HashMap<>();
             DependencyResolver.init(classSupplierHashMap);
             forceRegisterClass(DependencyManager.class);
             invokeRegistrators();
@@ -92,6 +97,7 @@ public class DependencyManager {
                 //Registered annotation?
                 Optional<Annotation> ann = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).findFirst();
                 if (ann.isPresent()){
+                    preProxyInstances.putIfAbsent(clazz, supplier.get());
                     instance = annotationsToProxy.get(ann.get().annotationType()).apply(supplier.get());;
                 }else if (supplier != null){
                     instance =  supplier.get();
@@ -119,7 +125,6 @@ public class DependencyManager {
 
 
     private static  <T> boolean mustBeProxied(Class<T> clazz){
-        List<Annotation> annotations = AnnotationScanner.getAnnotationsOfClass(clazz);
         return clazz.isInterface() || proxyHandlers.containsKey(clazz)
                 || AnnotationScanner.getAnnotationsOfClass(clazz).stream().anyMatch(e-> annotationsToProxy.containsKey(e.annotationType()));
     }
@@ -156,6 +161,15 @@ public class DependencyManager {
         }
         DependencyResolver.verifyClassDependencies(classSupplierHashMap,clazz);
         dependencyLifecycleHashMap.put(clazz, dependencyLifecycle);
+    }
+
+    //Ignores calls to proxy
+    public static Object createSimpleInstance(Class clazz){
+        if (preProxyInstances.get(clazz) != null){
+            return preProxyInstances.get(clazz);
+        }else {
+            return classSupplierHashMap.get(clazz).get();
+        }
     }
 
     public static void refreshContext(){

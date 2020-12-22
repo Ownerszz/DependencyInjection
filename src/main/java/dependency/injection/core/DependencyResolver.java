@@ -1,6 +1,7 @@
 package dependency.injection.core;
 
 
+import dependency.injection.annotation.scanner.AnnotationScanner;
 import org.objenesis.ObjenesisHelper;
 
 import java.lang.reflect.Constructor;
@@ -11,11 +12,12 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static dependency.injection.core.DependencyManager.createInstance;
+import static dependency.injection.core.DependencyManager.createSimpleInstance;
 
 
 public class DependencyResolver {
     private static HashMap<Class, Boolean> scannedClasses;
-    public static void init(HashMap<Class, Supplier> classConstructorHashMap) throws Exception {
+    public static void init(HashMap<Class, Supplier> classConstructorHashMap) throws Throwable {
         scannedClasses = new HashMap<>();
         for (Class clazz :ClassScanner.scan()) {
             scannedClasses.putIfAbsent(clazz, false);
@@ -56,10 +58,10 @@ public class DependencyResolver {
                     if(Arrays.stream(parameterType.getDeclaredFields()).anyMatch(e-> e.getType().equals(clazz))){
                         throw new RuntimeException("Circular dependency detected between: " + clazz.getName() + " and " + parameterType.getName());
                     }
-                    if (parameterType.isAnnotationPresent(Dependency.class)){
+                    if (AnnotationScanner.isAnnotationPresent(parameterType,Dependency.class)){
                         verifyClassDependencies(ctors,classes, parameterType);
                     }else {
-                        throw new RuntimeException("Class" + parameterType.getName() + "not marked with @Dependency but is found in a constructor marked with @ResolveDependencies");
+                        throw new RuntimeException("Class: " + parameterType.getName() + " not marked with @Dependency but is found in a constructor marked with @ResolveDependencies");
                     }
                 }
             }
@@ -82,10 +84,13 @@ public class DependencyResolver {
                 Object[] contructorArgs = new Object[constructor.getParameterCount()];
                 Class[] parameterTypes=constructor.getParameterTypes();
                 for (int i = 0; i < constructor.getParameterCount(); i++) {
-                    contructorArgs[i] =  createInstance(parameterTypes[i]);
+                    try {
+                        contructorArgs[i] = parameterTypes[i].cast(createInstance(parameterTypes[i]));
+                    }catch (Throwable e){
+                        contructorArgs[i] = createSimpleInstance(parameterTypes[i]);
+                    }
                 }
                 return constructor.newInstance(contructorArgs);
-
             }catch (Exception e){
                 e.printStackTrace();
                 return null;

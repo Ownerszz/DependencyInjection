@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 public class DependencyManagerTest {
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setup() throws Throwable {
         DependencyManager.use(UsableClassesGenerator.generateConstructors());
         DependencyManager.invokeRegistrators();
     }
@@ -54,7 +54,7 @@ public class DependencyManagerTest {
 
 
     @Test
-    public void run() throws Exception{
+    public void run() throws Throwable {
         DependencyManager.run(false);
     }
 

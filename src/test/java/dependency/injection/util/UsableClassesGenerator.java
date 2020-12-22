@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.function.Supplier;
 
 public class UsableClassesGenerator {
-    public static HashMap<Class, Boolean> generateClasses() throws Exception{
+    public static HashMap<Class, Boolean> generateClasses() throws Throwable {
         HashMap<Class, Boolean> temp = new HashMap<>();
         for (Class clazz: ClassScanner.scan()) {
             if (!clazz.getSimpleName().contains("Non")){
@@ -17,7 +17,7 @@ public class UsableClassesGenerator {
         }
         return temp;
     }
-    public static HashMap<Class, Supplier>  generateConstructors() throws Exception{
+    public static HashMap<Class, Supplier>  generateConstructors() throws Throwable {
         HashMap<Class, Supplier> constructors = new HashMap<>();
         HashMap<Class, Boolean> generatedClasses = generateClasses();
         for (Class clazz:generatedClasses.keySet()) {

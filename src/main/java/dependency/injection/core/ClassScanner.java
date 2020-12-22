@@ -28,18 +28,18 @@ import java.util.stream.Collectors;
 
 public class ClassScanner {
     private static final Logger logger = LoggerFactory.getLogger(ClassScanner.class);
-    public static List<Class> scan(){
+    public static List<Class> scan() throws Throwable{
         List<Class> classes = new ArrayList<>();
-        /*org.clapper.util.classutil.ClassFinder classFinder = new org.clapper.util.classutil.ClassFinder();
-        *classFinder.addClassPath();
-
-        *ClassFilter filter =
-         *       new AndClassFilter(/*new NotClassFilter(new AbstractClassFilter())*//*);
-
-        List<ClassInfo> foundClasses = new ArrayList<>();
-        classFinder.findClasses(foundClasses, filter);*/
-        //List<ClassInfo> ourClasses = foundClasses.stream().filter(e-> e.getClassName().contains("dependency.injection")).collect(Collectors.toList());
-        for (Class clazz: getAllKnownClasses()) {
+        List<Class> temp = null;
+        try {
+            temp = getAllKnownClasses();
+        }catch (Throwable ignored){
+            logger.warn(ignored.getMessage());
+        }
+        if (temp == null){
+            throw new RuntimeException("No classes found");
+        }
+        for (Class clazz: temp) {
             try {
                 Boolean resolvable =AnnotationScanner.isResolvable(clazz,1);
                 if (resolvable!= null && resolvable){
@@ -57,7 +57,11 @@ public class ClassScanner {
         List<Class> classFiles = new ArrayList<Class>();
         List<File> classLocations = getClassLocationsForCurrentClasspath();
         for (File file : classLocations) {
-            classFiles.addAll(getClassesFromPath(file));
+            try {
+                classFiles.addAll(getClassesFromPath(file));
+            }catch (Throwable ignored){
+                logger.warn(ignored.getMessage());
+            }
         }
         return classFiles;
     }
@@ -101,11 +105,16 @@ public class ClassScanner {
                 JarFile jar = new JarFile(path);
                 Enumeration<JarEntry> en = jar.entries();
                 while (en.hasMoreElements()) {
-                    JarEntry entry = en.nextElement();
-                    if (entry.getName().endsWith("class")) {
-                        String className = fromFileToClassName(entry.getName());
-                        loadClass(classes, className);
+                    try {
+                        JarEntry entry = en.nextElement();
+                        if (entry.getName().endsWith("class")) {
+                            String className = fromFileToClassName(entry.getName());
+                            loadClass(classes, className);
+                        }
+                    }catch (Throwable e){
+
                     }
+
                 }
             }
         } catch (Exception e) {
@@ -140,9 +149,13 @@ public class ClassScanner {
         // List<String> classNameList = new ArrayList<String>();
         int substringBeginIndex = path.getAbsolutePath().length() + 1;
         for (File classfile : classFiles) {
-            String className = classfile.getAbsolutePath().substring(substringBeginIndex);
-            className = fromFileToClassName(className);
-            loadClass(classes, className);
+            try {
+                String className = classfile.getAbsolutePath().substring(substringBeginIndex);
+                className = fromFileToClassName(className);
+                loadClass(classes, className);
+            }catch (Throwable ignored){
+
+            }
         }
 
         return classes;

@@ -102,7 +102,6 @@ public class AnnotationScanner {
     }
 
     public static boolean isAnnotationPresent(Class clazz,Class annotation){
-        List<Annotation> found = knownAnnotations.get(clazz);
         return knownAnnotations.get(clazz).stream().anyMatch(e -> e.annotationType().equals(annotation));
     }
     public static <A> A getAnnotation(Class<?> clazz, Class<?> annotation){

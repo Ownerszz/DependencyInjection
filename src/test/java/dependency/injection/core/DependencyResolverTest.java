@@ -15,7 +15,7 @@ public class DependencyResolverTest {
 
 
     @Test
-    public void resolveDependencies() throws Exception {
+    public void resolveDependencies() throws Throwable {
         HashMap<Class, Boolean> temp = UsableClassesGenerator.generateClasses();
         DependencyResolver.verifyClassDependencies(new HashMap<>(),temp, TestObject.class);
         DependencyResolver.verifyClassDependencies(new HashMap<>(),temp, TestObjectWithResolvableConstructor.class);
@@ -23,7 +23,7 @@ public class DependencyResolverTest {
     }
 
     @Test
-    public void dontResolve() throws Exception {
+    public void dontResolve() throws Throwable {
         HashMap<Class, Boolean> temp = UsableClassesGenerator.generateClasses();
         temp.putIfAbsent(TestObjectWithNonResolvableConstructor.class,false);
         try {
@@ -34,7 +34,7 @@ public class DependencyResolverTest {
         }
     }
     @Test
-    public void dontResolveSelfReferencing() throws Exception {
+    public void dontResolveSelfReferencing() throws Throwable {
         HashMap<Class, Boolean> temp = UsableClassesGenerator.generateClasses();
         temp.putIfAbsent(TestObjectWithNonResolvableSelfReferencingConstructor.class,false);
         try {
@@ -46,7 +46,7 @@ public class DependencyResolverTest {
     }
 
     @Test
-    public void dontResolveCircularDependency() throws Exception {
+    public void dontResolveCircularDependency() throws Throwable {
         HashMap<Class, Boolean> temp = UsableClassesGenerator.generateClasses();
         temp.putIfAbsent(TestObjectWithNonResolvableCircularDependency1.class,false);
         temp.putIfAbsent(TestObjectWithNonResolvableCircularDependency2.class,false);
@@ -59,7 +59,7 @@ public class DependencyResolverTest {
     }
 
     @Test
-    public void resolveExtendedDependencies() throws Exception{
+    public void resolveExtendedDependencies() throws Throwable {
         HashMap<Class, Boolean> temp = UsableClassesGenerator.generateClasses();
         temp.putIfAbsent(SkeletonImpl.class,false);
         temp.putIfAbsent(Stubbed.class,false);

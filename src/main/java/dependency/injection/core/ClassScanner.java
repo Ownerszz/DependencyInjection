@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * Find classes in the classpath (reads JARs and classpath folders).
  *
  * @author P&aring;l Brattberg, brattberg@gmail.com
- * @see http://gist.github.com/pal
+ * @see  http://gist.github.com/pal
  */
 
 public class ClassScanner {

@@ -14,9 +14,18 @@ import java.util.function.Supplier;
 import static dependency.injection.core.DependencyManager.createInstance;
 import static dependency.injection.core.DependencyManager.createSimpleInstance;
 
-
+/**
+ * This class is responsible for verifying all {@link Dependency dependencies} in a constructor marked with {@link ResolveDependencies}
+ * This class will also setup basic {@link Supplier instantiators} for the {@link Dependency dependencies}.
+ */
 public class DependencyResolver {
     private static HashMap<Class, Boolean> scannedClasses;
+
+    /**
+     * Reads all classes using {@link ClassScanner#scan()} and verifies the classes
+     * @param classConstructorHashMap
+     * @throws Throwable
+     */
     public static void init(HashMap<Class, Supplier> classConstructorHashMap) throws Throwable {
         scannedClasses = new HashMap<>();
         for (Class clazz :ClassScanner.scan()) {
@@ -31,6 +40,14 @@ public class DependencyResolver {
         verifyClassDependencies(ctors,scannedClasses,clazz);
     }
 
+    /**
+     * Verifies that the current class can be made using the registered {@link Dependency dependencies}
+     * And will also setup a basic {@link Supplier instantiator} for the {@link Dependency dependency}.
+     * @param ctors hashmap to add the {@link Supplier instantiator}
+     * @param classes known classes
+     * @param clazz current class to verify
+     * @param <T> type parameter
+     */
     public static<T> void verifyClassDependencies(HashMap<Class,Supplier> ctors,HashMap<Class, Boolean> classes,Class<T> clazz) {
         if (scannedClasses == null){
             scannedClasses = classes;
@@ -99,6 +116,10 @@ public class DependencyResolver {
 
     }
 
+    /**
+     * Adds a class to the scanned classes. Only useful if you run {@link DependencyResolver#verifyClassDependencies(HashMap, Class)} after this is called
+     * @param clazz the class to add
+     */
     protected static void addClassToScannedClasses(Class clazz){
         scannedClasses.putIfAbsent(clazz, false);
     }

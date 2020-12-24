@@ -5,6 +5,11 @@ import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.NoOp;*/
 
 public class CustomizedProxyGenerator {
+    /**
+     *
+     * @param interfaze the interfaze
+     * @return the interfaze
+     */
     public static Object createInterfaceInstance(Class interfaze){
         //TODO: Maybe in the future we will need this
         /*Enhancer enhancer = new Enhancer();

@@ -31,7 +31,7 @@ public class Client implements Runnable {
 ### Not able to use Spring or Guice
 Hopefully this library works for you :)
 
-### Wanting to supply other people that use this library (hopefully none) your own framework
+### Wanting to supply your own framework to other people that use this library (hopefully none)
 ``` java
 @DependencyRegistrator
 public class DistribRegistrator {

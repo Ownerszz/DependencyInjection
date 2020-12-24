@@ -61,6 +61,18 @@ public class DistribTest {
     }
 
     @Test
+    public void skeletonImplIsSingleton() throws Exception{
+        Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
+        skeleton.run();
+        SkeletonImpl impl = (SkeletonImpl) DependencyManager.createSimpleInstance(SkeletonImpl.class);
+        Stubbed stubbed = (Stubbed) StubFactory.createStub(Stubbed.class,skeleton.getAddress().getIpAddress(),skeleton.getAddress().getPortNumber());
+        stubbed.setS("Same instance?");
+        assertEquals("Same instance?", stubbed.getS());
+        assertEquals("Same instance?", impl.getS());
+
+    }
+
+    @Test
     public void createStub() throws Exception{
         Stubbed stubbed = (Stubbed) DependencyManager.createInstance(Stubbed.class);
         assertNotNull(stubbed);

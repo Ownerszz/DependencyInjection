@@ -97,8 +97,9 @@ public class DependencyManager {
                 //Registered annotation?
                 Optional<Annotation> ann = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).findFirst();
                 if (ann.isPresent()){
-                    preProxyInstances.putIfAbsent(clazz, supplier.get());
-                    instance = annotationsToProxy.get(ann.get().annotationType()).apply(supplier.get());;
+                    Object preProxy = supplier.get();
+                    preProxyInstances.putIfAbsent(clazz,preProxy );
+                    instance = annotationsToProxy.get(ann.get().annotationType()).apply(preProxy);;
                 }else if (supplier != null){
                     instance =  supplier.get();
                 }else {

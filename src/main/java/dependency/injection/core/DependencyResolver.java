@@ -4,10 +4,7 @@ package dependency.injection.core;
 import dependency.injection.annotation.scanner.AnnotationScanner;
 import org.objenesis.ObjenesisHelper;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -102,6 +99,18 @@ public class DependencyResolver {
                 Class[] parameterTypes=constructor.getParameterTypes();
                 for (int i = 0; i < constructor.getParameterCount(); i++) {
                     try {
+                        Collection collection = new ArrayList();
+                        if (Collection.class.isAssignableFrom(parameterTypes[i]) || Map.class.isAssignableFrom(parameterTypes[i])){
+                            Class type = (Class) ((ParameterizedType) constructor.getParameters()[i].getParameterizedType()).getActualTypeArguments()[0];
+                            for (Class implType: ClassScanner.getMatchingClasses(type)) {
+                                try {
+                                    collection.add(createInstance(implType));
+
+                                }catch (Throwable e){
+                                    collection.add(createSimpleInstance(implType));
+                                }
+                            }
+                        }
                         contructorArgs[i] = parameterTypes[i].cast(createInstance(parameterTypes[i]));
                     }catch (Throwable e){
                         contructorArgs[i] = createSimpleInstance(parameterTypes[i]);

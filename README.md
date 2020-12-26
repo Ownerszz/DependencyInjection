@@ -4,7 +4,7 @@ DependencyInjection is a Java library for dependency injection
 
 ## Installation
 
-Use the jar supplied in this repo or build from source using maven install
+Use the jar supplied in this repo or build from source using gradle jar or gradle release
 
 ## Main usages
 I highly recommend to not use this library and instead use Java Spring or Google Guice as their framework is more refined and has better support

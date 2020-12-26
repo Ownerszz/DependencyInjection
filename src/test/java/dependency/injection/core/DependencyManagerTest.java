@@ -5,6 +5,7 @@ import dependency.injection.core.DependencyManager;
 import dependency.injection.distrib.DistribDependencyRegistration;
 import dependency.injection.distrib.SkeletonImpl;
 import dependency.injection.distrib.Stubbed;
+import dependency.injection.model.TestInterfaceService;
 import dependency.injection.model.TestObject;
 import dependency.injection.model.TestObjectWithResolvableConstructor;
 import dependency.injection.model.deep.dependencies.TestObjectWithDeepDependencies;
@@ -16,6 +17,7 @@ import org.junit.Test;
 import org.objenesis.ObjenesisHelper;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 
 import static org.junit.Assert.*;
 
@@ -51,12 +53,18 @@ public class DependencyManagerTest {
         DependencyManager.runRunnableDependencies();
     }
 
+    @Test
+    public void resolveInterfacesImpl() throws Throwable{
+       TestInterfaceService testInterfaceService = (TestInterfaceService) DependencyManager.createInstance(TestInterfaceService.class);
+       assertEquals(3, testInterfaceService.getTestInterfaces().size());
+    }
 
 
     @Test
     public void run() throws Throwable {
         DependencyManager.run(false);
     }
+
 
     @AfterClass
     public static void tearDown(){

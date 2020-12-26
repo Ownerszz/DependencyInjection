@@ -65,10 +65,10 @@ public class DependencyResolver {
 
             for (Class parameterType:constructor.getParameterTypes()) {
                 Boolean resolved = classes.get(parameterType);
-                if (resolved == null){
+                if (resolved == null && !ClassUtil.isCollection(parameterType)){
                     throw new RuntimeException("Unknown dependency in constructor of type: " + parameterType.getSimpleName());
                 }
-                if (!resolved){
+                if (resolved != null && !resolved){
                     if(Arrays.stream(parameterType.getDeclaredFields()).anyMatch(e-> e.getType().equals(clazz))){
                         throw new RuntimeException("Circular dependency detected between: " + clazz.getName() + " and " + parameterType.getName());
                     }
@@ -99,19 +99,22 @@ public class DependencyResolver {
                 Class[] parameterTypes=constructor.getParameterTypes();
                 for (int i = 0; i < constructor.getParameterCount(); i++) {
                     try {
-                        Collection collection = new ArrayList();
-                        if (Collection.class.isAssignableFrom(parameterTypes[i]) || Map.class.isAssignableFrom(parameterTypes[i])){
+                        if (ClassUtil.isCollection(parameterTypes[i])){
+                            Collection collection = new ArrayList();
                             Class type = (Class) ((ParameterizedType) constructor.getParameters()[i].getParameterizedType()).getActualTypeArguments()[0];
                             for (Class implType: ClassScanner.getMatchingClasses(type)) {
-                                try {
-                                    collection.add(createInstance(implType));
-
-                                }catch (Throwable e){
-                                    collection.add(createSimpleInstance(implType));
+                                if (implType != type){
+                                    try {
+                                        collection.add(createInstance(implType));
+                                    }catch (Throwable e){
+                                        collection.add(createSimpleInstance(implType));
+                                    }
                                 }
                             }
+                            contructorArgs[i] = collection;
+                        }else {
+                            contructorArgs[i] = parameterTypes[i].cast(createInstance(parameterTypes[i]));
                         }
-                        contructorArgs[i] = parameterTypes[i].cast(createInstance(parameterTypes[i]));
                     }catch (Throwable e){
                         contructorArgs[i] = createSimpleInstance(parameterTypes[i]);
                     }

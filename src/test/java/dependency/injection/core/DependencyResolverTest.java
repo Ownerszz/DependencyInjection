@@ -67,4 +67,10 @@ public class DependencyResolverTest {
         DependencyResolver.verifyClassDependencies(new HashMap<>(),temp,Stubbed.class);
 
     }
+
+    @Test
+    public void resolveInterfacesImpl() throws Throwable{
+        HashMap<Class, Boolean> temp = UsableClassesGenerator.generateClasses();
+        DependencyResolver.verifyClassDependencies(new HashMap<>(),temp, TestInterfaceService.class);
+    }
 }

@@ -7,7 +7,7 @@ import static ownerszz.libraries.dependency.injection.core.DependencyManager.cre
 
 /**
  * Manages scoped dependencies
- * @see DependencyLifecycle#SCOPED
+ * @see DependencyLifecycle#SINGLETON
  */
 public class SingletonDependencyManager {
     private static HashMap<Class, Object> singletons;

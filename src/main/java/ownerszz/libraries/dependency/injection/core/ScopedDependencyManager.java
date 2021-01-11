@@ -5,6 +5,10 @@ import java.util.UUID;
 
 import static ownerszz.libraries.dependency.injection.core.DependencyManager.createInstance;
 
+/**
+ * Manages scoped dependencies
+ * @see DependencyLifecycle#SCOPED
+ */
 public  class ScopedDependencyManager {
     private static HashMap<String, HashMap<Class,Object>> scopedDependencies;
     protected ScopedDependencyManager(){

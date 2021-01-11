@@ -4,7 +4,11 @@ import java.util.HashMap;
 
 import static ownerszz.libraries.dependency.injection.core.DependencyManager.createInstanceNoLifecycleChecks;
 
-@Dependency(lifecycle = DependencyLifecycle.SINGLETON)
+
+/**
+ * Manages scoped dependencies
+ * @see DependencyLifecycle#SCOPED
+ */
 public class SingletonDependencyManager {
     private static HashMap<Class, Object> singletons;
 

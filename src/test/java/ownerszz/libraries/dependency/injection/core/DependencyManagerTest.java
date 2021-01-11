@@ -21,18 +21,18 @@ public class DependencyManagerTest {
     }
 
     @Test
-    public void createSimpleInstance() throws Exception {
+    public void createSimpleInstance() throws Throwable {
         TestObject testObject = (TestObject) DependencyManager.createInstance(TestObject.class);
         assertNotNull(testObject);
     }
     @Test
-    public void createInstanceWithDependencies() throws Exception{
+    public void createInstanceWithDependencies() throws Throwable {
         TestObjectWithResolvableConstructor test = (TestObjectWithResolvableConstructor) DependencyManager.createInstance(TestObjectWithResolvableConstructor.class);
         assertNotNull(test);
     }
 
     @Test
-    public void createInstanceWithDeepDependencies() throws Exception{
+    public void createInstanceWithDeepDependencies() throws Throwable {
         TestObjectWithDeepDependencies test = (TestObjectWithDeepDependencies) DependencyManager.createInstance(TestObjectWithDeepDependencies.class);
         assertNotNull(test);
     }
@@ -40,7 +40,7 @@ public class DependencyManagerTest {
 
 
     @Test
-    public void runRunnableInstances() throws Exception {
+    public void runRunnableInstances() throws Throwable {
         DependencyManager.runRunnableDependencies();
     }
 

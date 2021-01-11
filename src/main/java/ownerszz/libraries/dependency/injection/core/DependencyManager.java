@@ -27,12 +27,13 @@ public class DependencyManager {
     private static HashMap<Class, InvocationHandler> proxyHandlers;
     private static HashMap<Class<Annotation>, Function<Object, Object>> annotationsToProxy;
     private static HashMap<Class, DependencyLifecycle> dependencyLifecycleHashMap;
-    private static HashMap<Class, Object> singletons;
+
     private static HashMap<Class, Object> preProxyInstances;
     private static ThreadPoolExecutor threadPoolExecutor;
     private static boolean registratorsRunned = false;
     private static boolean runnableDependenciesRunned = false;
-    private static HashMap<String,HashMap<Class,Object>> scopedDependencies;
+    private static SingletonDependencyManager singletonDependencyManager;
+    private static ScopedDependencyManager scopedDependencyManager;
 
     /**
      * If you don't want to use class scanning us this method
@@ -45,9 +46,9 @@ public class DependencyManager {
         proxyHandlers = new HashMap<>();
         annotationsToProxy = new HashMap<>();
         dependencyLifecycleHashMap = new HashMap<>();
-        singletons = new HashMap<>();
         preProxyInstances = new HashMap<>();
-        scopedDependencies = new HashMap<>();
+        scopedDependencyManager = new ScopedDependencyManager();
+        singletonDependencyManager = new SingletonDependencyManager();
         forceRegisterClass(DependencyManager.class);
     }
 
@@ -64,9 +65,9 @@ public class DependencyManager {
             proxyHandlers = new HashMap<>();
             annotationsToProxy = new HashMap<>();
             dependencyLifecycleHashMap = new HashMap<>();
-            singletons = new HashMap<>();
             preProxyInstances = new HashMap<>();
-            scopedDependencies = new HashMap<>();
+            singletonDependencyManager = new SingletonDependencyManager();
+            scopedDependencyManager = new ScopedDependencyManager();
             DependencyResolver.init(classSupplierHashMap);
             forceRegisterClass(DependencyManager.class);
             invokeRegistrators();
@@ -78,7 +79,7 @@ public class DependencyManager {
      * Invokes all classes marked with {@link DependencyRegistrator} the biggest constructor marked with {@link ResolveDependencies}
      * @throws Exception
      */
-    public static void invokeRegistrators() throws Exception {
+    public static void invokeRegistrators() throws Throwable {
         if (!registratorsRunned){
             for (Class clazz: classSupplierHashMap.keySet()) {
                 if (clazz.isAnnotationPresent(DependencyRegistrator.class)){
@@ -94,8 +95,7 @@ public class DependencyManager {
      * @see Dependency
      * @throws Exception
      */
-
-    public static void runRunnableDependencies() throws Exception {
+    public static void runRunnableDependencies() throws Throwable {
         if(!runnableDependenciesRunned){
             threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
             for (Class<?> clazz: classSupplierHashMap.keySet().stream().filter(e-> !e.isAnnotation()).collect(Collectors.toList())) {
@@ -118,15 +118,20 @@ public class DependencyManager {
      * @see Dependency
      * @see DependencyRegistrator
      */
-    public static  <T> Object createInstance(Class<T> clazz) throws Exception{
+    public static  <T> Object createInstance(Class<T> clazz) throws Throwable {
+        Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
+        if (dependency != null && dependency.lifecycle() == DependencyLifecycle.SINGLETON){
+           return singletonDependencyManager.createOrGetInstance(clazz);
+        }else {
+            return createInstanceNoLifecycleChecks(clazz);
+        }
+    }
+
+    protected static Object createInstanceNoLifecycleChecks(Class clazz) throws Throwable{
         if (classSupplierHashMap.containsKey(clazz)){
             Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
-            Object instance = singletons.get(clazz);
-            if (dependency.lifecycle() == DependencyLifecycle.SINGLETON && instance != null){
-
-                return instance;
-            }
-            Supplier<T> supplier = classSupplierHashMap.get(clazz);
+            Supplier<Object> supplier = classSupplierHashMap.get(clazz);
+            Object instance;
             if (mustBeProxied(clazz)){
                 //Registered annotation?
                 Optional<Annotation> ann = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).findFirst();
@@ -148,16 +153,12 @@ public class DependencyManager {
             }else {
                 instance= supplier.get();
             }
-            if (dependency.lifecycle() == DependencyLifecycle.SINGLETON){
-                singletons.put(clazz, instance);
-            }
+
             return instance;
         }else {
             throw new RuntimeException("Class: " + clazz.getName() + " is not registered. Make sure that it is annotated with @Dependency");
         }
     }
-
-
 
     private static  <T> boolean mustBeProxied(Class<T> clazz){
         return clazz.isInterface() || proxyHandlers.containsKey(clazz)
@@ -283,12 +284,7 @@ public class DependencyManager {
      * @return The key of the scope
      */
     public String createScope(){
-        String key;
-        do {
-            key = UUID.randomUUID().toString();
-        }while (scopedDependencies.containsKey(key));
-        scopedDependencies.putIfAbsent(key,new HashMap<>());
-        return key;
+        return scopedDependencyManager.createScope();
     }
 
     /**
@@ -296,7 +292,7 @@ public class DependencyManager {
      * @param key The key to destroy
      */
     public void destroyScope(String key){
-        scopedDependencies.remove(key);
+        scopedDependencyManager.destroyScope(key);
     }
 
     /**
@@ -310,21 +306,11 @@ public class DependencyManager {
      * @return the scoped instance
      * @throws Exception when key not found
      */
-    public Object createOrGetScopedInstance(String key,Class clazz) throws Exception {
-        if (scopedDependencies.containsKey(key)){
-            if (scopedDependencies.get(key).containsKey(clazz)){
-                return scopedDependencies.get(key).get(clazz);
-            }else {
-                Object instance = createInstance(clazz);
-                scopedDependencies.get(key).put(clazz,instance);
-                return instance;
-            }
-        }else {
-            throw new Exception("Scope doesn't exist.");
-        }
+    public Object createOrGetScopedInstance(String key,Class clazz) throws Throwable {
+        return scopedDependencyManager.createOrGetScopedInstance(key, clazz);
     }
 
-    public static DependencyManager getInstance() throws Exception {
+    public static DependencyManager getInstance() throws Throwable {
         return (DependencyManager) createInstance(DependencyManager.class);
     }
 }

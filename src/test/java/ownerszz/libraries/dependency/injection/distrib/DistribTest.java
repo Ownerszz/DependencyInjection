@@ -26,14 +26,14 @@ public class DistribTest {
     }
 
     @Test
-    public void runSkeleton() throws Exception {
+    public void runSkeleton() throws Throwable {
         be.kdg.distrib.skeletonFactory.Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         assertNotNull(skeleton.getAddress());
         skeleton.run();
     }
 
     @Test
-    public void makeSkeletonHandleRequest() throws Exception{
+    public void makeSkeletonHandleRequest() throws Throwable {
         be.kdg.distrib.skeletonFactory.Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         skeleton.run();
         Stubbed stubbed = (Stubbed) StubFactory.createStub(Stubbed.class,skeleton.getAddress().getIpAddress(),skeleton.getAddress().getPortNumber());
@@ -42,20 +42,20 @@ public class DistribTest {
     }
 
     @Test
-    public void createSkeleton() throws Exception{
+    public void createSkeleton() throws Throwable {
         Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         assertNotNull(skeleton);
     }
 
     @Test
-    public void skeletonIsSingleton() throws Exception{
+    public void skeletonIsSingleton() throws Throwable {
         Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         Skeleton skeleton2 = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         assertEquals(skeleton.getAddress(), skeleton2.getAddress());
     }
 
     @Test
-    public void skeletonImplIsSingleton() throws Exception{
+    public void skeletonImplIsSingleton() throws Throwable {
         Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         skeleton.run();
         SkeletonImpl impl = (SkeletonImpl) DependencyManager.createSimpleInstance(SkeletonImpl.class);
@@ -67,13 +67,13 @@ public class DistribTest {
     }
 
     @Test
-    public void createStub() throws Exception{
+    public void createStub() throws Throwable {
         Stubbed stubbed = (Stubbed) DependencyManager.createInstance(Stubbed.class);
         assertNotNull(stubbed);
     }
 
     @Test
-    public void createClient() throws Exception{
+    public void createClient() throws Throwable {
         Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         skeleton.run();
         DependencyManager dependencyManager = (DependencyManager) DependencyManager.createInstance(DependencyManager.class);

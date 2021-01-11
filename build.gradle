@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'ownerszz.libraries'
-archivesBaseName 'dependency-injection'
+
 version '1.0'
 
 repositories {

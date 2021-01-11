@@ -8,6 +8,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
@@ -31,6 +32,7 @@ public class DependencyManager {
     private static ThreadPoolExecutor threadPoolExecutor;
     private static boolean registratorsRunned = false;
     private static boolean runnableDependenciesRunned = false;
+    private static HashMap<String,HashMap<Class,Object>> scopedDependencies;
 
     /**
      * If you don't want to use class scanning us this method
@@ -45,6 +47,7 @@ public class DependencyManager {
         dependencyLifecycleHashMap = new HashMap<>();
         singletons = new HashMap<>();
         preProxyInstances = new HashMap<>();
+        scopedDependencies = new HashMap<>();
         forceRegisterClass(DependencyManager.class);
     }
 
@@ -63,6 +66,7 @@ public class DependencyManager {
             dependencyLifecycleHashMap = new HashMap<>();
             singletons = new HashMap<>();
             preProxyInstances = new HashMap<>();
+            scopedDependencies = new HashMap<>();
             DependencyResolver.init(classSupplierHashMap);
             forceRegisterClass(DependencyManager.class);
             invokeRegistrators();
@@ -271,4 +275,56 @@ public class DependencyManager {
         annotationsToProxy.clear();
     }
 
+    /**
+     * Creates a new key to use for adding instances within the scope. Scopes are never automatically created.
+     *
+     * If you no longer need the scope just call {@link DependencyManager#destroyScope(String)}
+     *
+     * @return The key of the scope
+     */
+    public String createScope(){
+        String key;
+        do {
+            key = UUID.randomUUID().toString();
+        }while (scopedDependencies.containsKey(key));
+        scopedDependencies.putIfAbsent(key,new HashMap<>());
+        return key;
+    }
+
+    /**
+     * Will remove the scope and all scoped instances if they are no longer used within the application.
+     * @param key The key to destroy
+     */
+    public void destroyScope(String key){
+        scopedDependencies.remove(key);
+    }
+
+    /**
+     * Created or get a scoped instance associated with the specified key
+     *
+     * Limitations: This will never fetch {@link DependencyManager#createSimpleInstance(Class) simple instances}
+     * and will therefore always trigger the proxy functions.
+     *
+      * @param key The scope key
+     * @param clazz The class to instantiate or get
+     * @return the scoped instance
+     * @throws Exception when key not found
+     */
+    public Object createOrGetScopedInstance(String key,Class clazz) throws Exception {
+        if (scopedDependencies.containsKey(key)){
+            if (scopedDependencies.get(key).containsKey(clazz)){
+                return scopedDependencies.get(key).get(clazz);
+            }else {
+                Object instance = createInstance(clazz);
+                scopedDependencies.get(key).put(clazz,instance);
+                return instance;
+            }
+        }else {
+            throw new Exception("Scope doesn't exist.");
+        }
+    }
+
+    public static DependencyManager getInstance() throws Exception {
+        return (DependencyManager) createInstance(DependencyManager.class);
+    }
 }

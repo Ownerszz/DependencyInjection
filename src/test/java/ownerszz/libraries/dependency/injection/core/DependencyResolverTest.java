@@ -2,7 +2,6 @@ package ownerszz.libraries.dependency.injection.core;
 
 import ownerszz.libraries.dependency.injection.distrib.SkeletonImpl;
 import ownerszz.libraries.dependency.injection.distrib.Stubbed;
-import dependency.injection.model.*;
 import ownerszz.libraries.dependency.injection.util.UsableClassesGenerator;
 import static org.junit.Assert.*;
 

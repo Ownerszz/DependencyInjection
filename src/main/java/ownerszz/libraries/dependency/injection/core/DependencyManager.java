@@ -129,7 +129,6 @@ public class DependencyManager {
 
     protected static Object createInstanceNoLifecycleChecks(Class clazz) throws Throwable{
         if (classSupplierHashMap.containsKey(clazz)){
-            Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
             Supplier<Object> supplier = classSupplierHashMap.get(clazz);
             Object instance;
             if (mustBeProxied(clazz)){

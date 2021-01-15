@@ -22,18 +22,18 @@ public class DependencyManagerTest {
 
     @Test
     public void createSimpleInstance() throws Throwable {
-        TestObject testObject = (TestObject) DependencyManager.createInstance(TestObject.class);
+        TestObject testObject = DependencyManager.createInstance(TestObject.class);
         assertNotNull(testObject);
     }
     @Test
     public void createInstanceWithDependencies() throws Throwable {
-        TestObjectWithResolvableConstructor test = (TestObjectWithResolvableConstructor) DependencyManager.createInstance(TestObjectWithResolvableConstructor.class);
+        TestObjectWithResolvableConstructor test =  DependencyManager.createInstance(TestObjectWithResolvableConstructor.class);
         assertNotNull(test);
     }
 
     @Test
     public void createInstanceWithDeepDependencies() throws Throwable {
-        TestObjectWithDeepDependencies test = (TestObjectWithDeepDependencies) DependencyManager.createInstance(TestObjectWithDeepDependencies.class);
+        TestObjectWithDeepDependencies test =  DependencyManager.createInstance(TestObjectWithDeepDependencies.class);
         assertNotNull(test);
     }
 
@@ -46,20 +46,20 @@ public class DependencyManagerTest {
 
     @Test
     public void resolveInterfacesImpl() throws Throwable{
-       TestInterfaceService testInterfaceService = (TestInterfaceService) DependencyManager.createInstance(TestInterfaceService.class);
+       TestInterfaceService testInterfaceService = DependencyManager.createInstance(TestInterfaceService.class);
        assertEquals(3, testInterfaceService.getTestInterfaces().size());
     }
 
     @Test
     public void createAndFetchScopedInstances() throws Throwable{
         String firstKey = DependencyManager.getInstance().createScope();
-        TestObject normalCreate  = (TestObject) DependencyManager.createInstance(TestObject.class);
-        TestObject firstScoped = (TestObject) DependencyManager.getInstance().createOrGetScopedInstance(firstKey, TestObject.class);
-        TestObject shouldBeFirstScoped = (TestObject) DependencyManager.getInstance().createOrGetScopedInstance(firstKey, TestObject.class);
+        TestObject normalCreate  =  DependencyManager.createInstance(TestObject.class);
+        TestObject firstScoped =  DependencyManager.getInstance().createOrGetScopedInstance(firstKey, TestObject.class);
+        TestObject shouldBeFirstScoped =  DependencyManager.getInstance().createOrGetScopedInstance(firstKey, TestObject.class);
         assertNotEquals(normalCreate, firstScoped);
         assertEquals(firstScoped,shouldBeFirstScoped);
         String secondKey = DependencyManager.getInstance().createScope();
-        TestObject secondScoped = (TestObject) DependencyManager.getInstance().createOrGetScopedInstance(secondKey, TestObject.class);
+        TestObject secondScoped = DependencyManager.getInstance().createOrGetScopedInstance(secondKey, TestObject.class);
         assertNotEquals(firstScoped, secondScoped);
         DependencyManager.getInstance().destroyScope(firstKey);
         DependencyManager.getInstance().destroyScope(secondKey);
@@ -68,10 +68,10 @@ public class DependencyManagerTest {
     @Test
     public void destroyScope() throws Throwable{
         String firstKey = DependencyManager.getInstance().createScope();
-        TestObject firstScoped = (TestObject) DependencyManager.getInstance().createOrGetScopedInstance(firstKey, TestObject.class);
+        TestObject firstScoped =  DependencyManager.getInstance().createOrGetScopedInstance(firstKey, TestObject.class);
         DependencyManager.getInstance().destroyScope(firstKey);
        try {
-            firstScoped = (TestObject) DependencyManager.getInstance().createOrGetScopedInstance(firstKey, TestObject.class);
+            firstScoped =  DependencyManager.getInstance().createOrGetScopedInstance(firstKey, TestObject.class);
             fail("Key should've been destroyed");
        }catch (Throwable ignored){
 

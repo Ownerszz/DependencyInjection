@@ -23,12 +23,11 @@ import java.util.stream.Collectors;
  */
 @Dependency
 public class DependencyManager {
-    private static HashMap<Class, Supplier> classSupplierHashMap;
-    private static HashMap<Class, InvocationHandler> proxyHandlers;
-    private static HashMap<Class<Annotation>, Function<Object, Object>> annotationsToProxy;
+
+
     private static HashMap<Class, DependencyLifecycle> dependencyLifecycleHashMap;
 
-    private static HashMap<Class, Object> preProxyInstances;
+
     private static ThreadPoolExecutor threadPoolExecutor;
     private static boolean registratorsRunned = false;
     private static boolean runnableDependenciesRunned = false;
@@ -42,11 +41,8 @@ public class DependencyManager {
      */
 
     public static void use(HashMap<Class,Supplier> objectInstantiators) throws Exception {
-        classSupplierHashMap = objectInstantiators;
-        proxyHandlers = new HashMap<>();
-        annotationsToProxy = new HashMap<>();
+        DependencyInstanstatior.use(objectInstantiators);
         dependencyLifecycleHashMap = new HashMap<>();
-        preProxyInstances = new HashMap<>();
         scopedDependencyManager = new ScopedDependencyManager();
         singletonDependencyManager = new SingletonDependencyManager();
         forceRegisterClass(DependencyManager.class);
@@ -61,14 +57,10 @@ public class DependencyManager {
      */
     public static void run(boolean selfInit) throws Throwable {
         if (selfInit){
-            classSupplierHashMap = new HashMap<>();
-            proxyHandlers = new HashMap<>();
-            annotationsToProxy = new HashMap<>();
             dependencyLifecycleHashMap = new HashMap<>();
-            preProxyInstances = new HashMap<>();
             singletonDependencyManager = new SingletonDependencyManager();
             scopedDependencyManager = new ScopedDependencyManager();
-            DependencyResolver.init(classSupplierHashMap);
+            DependencyResolver.init();
             forceRegisterClass(DependencyManager.class);
             invokeRegistrators();
             runRunnableDependencies();
@@ -81,7 +73,7 @@ public class DependencyManager {
      */
     public static void invokeRegistrators() throws Throwable {
         if (!registratorsRunned){
-            for (Class clazz: classSupplierHashMap.keySet()) {
+            for (Class clazz: DependencyInstanstatior.getDependencySuppliers().keySet()) {
                 if (clazz.isAnnotationPresent(DependencyRegistrator.class)){
                     createInstance(clazz);
                 }
@@ -98,7 +90,7 @@ public class DependencyManager {
     public static void runRunnableDependencies() throws Throwable {
         if(!runnableDependenciesRunned){
             threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
-            for (Class<?> clazz: classSupplierHashMap.keySet().stream().filter(e-> !e.isAnnotation()).collect(Collectors.toList())) {
+            for (Class<?> clazz: DependencyInstanstatior.getDependencySuppliers().keySet().stream().filter(e-> !e.isAnnotation()).collect(Collectors.toList())) {
                 Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
                 if(dependency != null && dependency.runnable()){
                     Runnable toRun = (Runnable) createInstance(clazz);
@@ -118,51 +110,17 @@ public class DependencyManager {
      * @see Dependency
      * @see DependencyRegistrator
      */
-    public static  <T> Object createInstance(Class<T> clazz) throws Throwable {
+    public static  <T> T createInstance(Class<T> clazz) throws Throwable {
         Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
         if (dependency != null && dependency.lifecycle() == DependencyLifecycle.SINGLETON){
            return singletonDependencyManager.createOrGetInstance(clazz);
         }else {
-            return createInstanceNoLifecycleChecks(clazz);
+            return DependencyInstanstatior.createInstance(clazz);
         }
     }
 
-    protected static Object createInstanceNoLifecycleChecks(Class clazz) throws Throwable{
-        if (classSupplierHashMap.containsKey(clazz)){
-            Supplier<Object> supplier = classSupplierHashMap.get(clazz);
-            Object instance;
-            if (mustBeProxied(clazz)){
-                //Registered annotation?
-                Optional<Annotation> ann = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).findFirst();
-                if (ann.isPresent()){
-                    Object preProxy = supplier.get();
-                    preProxyInstances.putIfAbsent(clazz,preProxy );
-                    instance = annotationsToProxy.get(ann.get().annotationType()).apply(preProxy);;
-                }else if (supplier != null){
-                    instance =  supplier.get();
-                }else {
-                    InvocationHandler handler = proxyHandlers.get(clazz);
-                    if (handler == null){
-                        throw new Exception("Class: " + clazz.getName() + " is an interface but is not registered to be proxied");
-                    }
-                    instance =  Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[]{clazz}, handler);
-                }
-            }else if(supplier == null){
-                throw new Exception("No supplier found for dependency: " + clazz.getName());
-            }else {
-                instance= supplier.get();
-            }
 
-            return instance;
-        }else {
-            throw new RuntimeException("Class: " + clazz.getName() + " is not registered. Make sure that it is annotated with @Dependency");
-        }
-    }
 
-    private static  <T> boolean mustBeProxied(Class<T> clazz){
-        return clazz.isInterface() || proxyHandlers.containsKey(clazz)
-                || AnnotationScanner.getAnnotationsOfClass(clazz).stream().anyMatch(e-> annotationsToProxy.containsKey(e.annotationType()));
-    }
 
     /**
      * Forcefully register a dependency. The dependency doesn't have to be marked with {@link Dependency}
@@ -191,7 +149,7 @@ public class DependencyManager {
      * @see DependencyLifecycle
      */
     public  <T> void registerDependency(Class<T> clazz, Supplier<T> instantiator, DependencyLifecycle dependencyLifecycle) throws Exception{
-        classSupplierHashMap.put(clazz, instantiator);
+        DependencyInstanstatior.registerDependency(clazz,instantiator);
         dependencyLifecycleHashMap.put(clazz, dependencyLifecycle);
     }
 
@@ -216,7 +174,7 @@ public class DependencyManager {
      * @throws Exception
      */
     public void registerPoxyOnAnnotation(Class annotationClass,Function<Object, Object> instantiator, DependencyLifecycle dependencyLifecycle) throws Exception{
-        annotationsToProxy.put(annotationClass, instantiator);
+        DependencyInstanstatior.registerProxyOnAnnotation(annotationClass, instantiator);
         dependencyLifecycleHashMap.put(annotationClass, dependencyLifecycle);
     }
 
@@ -243,7 +201,7 @@ public class DependencyManager {
         }else if (!result) {
             throw new Exception("Class: " + clazz.getName() + "is not resolvable;");
         }
-        DependencyResolver.verifyClassDependencies(classSupplierHashMap,clazz);
+        DependencyResolver.verifyClassDependencies(DependencyInstanstatior.getDependencySuppliers(),clazz);
         dependencyLifecycleHashMap.put(clazz, dependencyLifecycle);
     }
 
@@ -253,12 +211,8 @@ public class DependencyManager {
      * @param clazz The class to instantiate
      * @return instance
      */
-    public static Object createSimpleInstance(Class clazz){
-        if (preProxyInstances.get(clazz) != null){
-            return preProxyInstances.get(clazz);
-        }else {
-            return classSupplierHashMap.get(clazz).get();
-        }
+    public static <T> T createSimpleInstance(Class<T> clazz){
+        return DependencyInstanstatior.createSimpleInstance(clazz);
     }
 
     /**
@@ -270,9 +224,7 @@ public class DependencyManager {
         if (threadPoolExecutor != null){
             threadPoolExecutor.shutdownNow();
         }
-        classSupplierHashMap.clear();
-        proxyHandlers.clear();
-        annotationsToProxy.clear();
+        DependencyInstanstatior.clear();
     }
 
     /**
@@ -305,11 +257,11 @@ public class DependencyManager {
      * @return the scoped instance
      * @throws Exception when key not found
      */
-    public Object createOrGetScopedInstance(String key,Class clazz) throws Throwable {
+    public <T> T createOrGetScopedInstance(String key,Class<T> clazz) throws Throwable {
         return scopedDependencyManager.createOrGetScopedInstance(key, clazz);
     }
 
     public static DependencyManager getInstance() throws Throwable {
-        return (DependencyManager) createInstance(DependencyManager.class);
+        return createInstance(DependencyManager.class);
     }
 }

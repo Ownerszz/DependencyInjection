@@ -50,14 +50,14 @@ public  class ScopedDependencyManager {
      * @return the scoped instance
      * @throws Exception when key not found
      */
-    protected  Object createOrGetScopedInstance(String key,Class clazz) throws Throwable {
+    protected <T> T createOrGetScopedInstance(String key,Class<T> clazz) throws Throwable {
         if (scopedDependencies.containsKey(key)){
             if (scopedDependencies.get(key).containsKey(clazz)){
-                return scopedDependencies.get(key).get(clazz);
+                return (T) scopedDependencies.get(key).get(clazz);
             }else {
                 Object instance = createInstance(clazz);
                 scopedDependencies.get(key).put(clazz,instance);
-                return instance;
+                return (T) instance;
             }
         }else {
             throw new Exception("Scope doesn't exist.");

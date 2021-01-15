@@ -3,6 +3,7 @@ package ownerszz.libraries.dependency.injection.core;
 import ownerszz.libraries.dependency.injection.model.TestInterfaceService;
 import ownerszz.libraries.dependency.injection.model.TestObject;
 import ownerszz.libraries.dependency.injection.model.TestObjectWithResolvableConstructor;
+import ownerszz.libraries.dependency.injection.model.TestObjectWithSlowConstructor;
 import ownerszz.libraries.dependency.injection.model.deep.dependencies.TestObjectWithDeepDependencies;
 import ownerszz.libraries.dependency.injection.util.UsableClassesGenerator;
 
@@ -76,6 +77,24 @@ public class DependencyManagerTest {
        }catch (Throwable ignored){
 
        }
+    }
+
+    @Test
+    public void createColdDependency() throws Throwable{
+        long before = System.currentTimeMillis();
+        //Constructor takes 10s to complete
+        TestObjectWithSlowConstructor testObjectWithSlowConstructor = DependencyManager.createInstance(TestObjectWithSlowConstructor.class);
+        long after = System.currentTimeMillis();
+        assertTrue((after - before) / 1000 <= 3);
+    }
+
+    @Test
+    public void invokeColdDependencyMethod() throws Throwable{
+        TestObjectWithSlowConstructor testObjectWithSlowConstructor = DependencyManager.createInstance(TestObjectWithSlowConstructor.class);
+        testObjectWithSlowConstructor.setTextField("test");
+        testObjectWithSlowConstructor.setTextField("thisWorks?");
+        String temp = testObjectWithSlowConstructor.getSomething();
+        assertEquals("test",testObjectWithSlowConstructor.getTextField());
     }
 
 

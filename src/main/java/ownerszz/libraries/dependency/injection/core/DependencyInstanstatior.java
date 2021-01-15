@@ -1,6 +1,17 @@
 package ownerszz.libraries.dependency.injection.core;
 
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.agent.ByteBuddyAgent;
+import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
+import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
+import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.matcher.ElementMatchers;
+import org.objenesis.ObjenesisHelper;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
+import ownerszz.libraries.dependency.injection.core.cold.dependency.ColdDependency;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
@@ -20,8 +31,9 @@ public class DependencyInstanstatior {
     private static HashMap<Class, Supplier> dependencySuppliers = new HashMap<>();
     protected static void use(HashMap<Class, Supplier> classSupplierHashMap){
         dependencySuppliers = classSupplierHashMap;
+        ByteBuddyAgent.install();
     }
-    protected static <T> T createSimpleInstance(Class<T> clazz){
+    public static <T> T createSimpleInstance(Class<T> clazz){
         if (preProxyInstances.get(clazz) != null){
             return (T) preProxyInstances.get(clazz);
         }else {
@@ -29,11 +41,20 @@ public class DependencyInstanstatior {
         }
     }
     
-    protected static <T> T  createInstance(Class<T> clazz) throws Exception {
+    public static <T> T  createInstance(Class<T> clazz) throws Exception {
         if (dependencySuppliers.containsKey(clazz)){
             Supplier<Object> supplier = dependencySuppliers.get(clazz);
             Object instance;
-            if (mustBeProxied(clazz)){
+            Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
+            if (dependency.creationType() == DependencyCreation.COLD){
+                Class<? extends T> coldClass = new ByteBuddy()
+                        .subclass(clazz)
+                        .method(ElementMatchers.any()).intercept(MethodDelegation.to(new ColdDependency(clazz)))
+                        .make()
+                        .load(clazz.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
+                        .getLoaded();
+                instance = ObjenesisHelper.newInstance(coldClass);
+            }else if (mustBeProxied(clazz)){
                 //Registered annotation?
                 Optional<Annotation> ann = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).findFirst();
                 if (ann.isPresent()){

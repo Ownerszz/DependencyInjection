@@ -20,6 +20,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+/**
+ * This class will hold a dependency and resolve it within its {@link ColdDependency#dependency}
+ */
 public class ColdDependency {
     private CompletableFuture<Object> dependency;
     private Class<?> dependencyType;

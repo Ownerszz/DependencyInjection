@@ -13,6 +13,7 @@ import java.lang.annotation.*;
  * All classes marked with {@link Dependency} or a "inheriting" annotation
  * will get injected to the constructor if the constructor is marked with {@link ResolveDependencies}
  * @see DependencyLifecycle
+ * @see DependencyCreation
  * @see AnnotationScanner
  */
 @Retention(RetentionPolicy.RUNTIME)

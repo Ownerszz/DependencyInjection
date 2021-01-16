@@ -21,4 +21,5 @@ import java.lang.annotation.*;
 public @interface Dependency {
     boolean runnable() default false;
     DependencyLifecycle lifecycle() default DependencyLifecycle.TRANSIENT;
+    DependencyCreation creationType() default DependencyCreation.WARM;
 }

@@ -58,7 +58,7 @@ public class DistribTest {
     public void skeletonImplIsSingleton() throws Throwable {
         Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         skeleton.run();
-        SkeletonImpl impl = (SkeletonImpl) DependencyManager.createSimpleInstance(SkeletonImpl.class);
+        SkeletonImpl impl = DependencyManager.createSimpleInstance(SkeletonImpl.class);
         Stubbed stubbed = (Stubbed) StubFactory.createStub(Stubbed.class,skeleton.getAddress().getIpAddress(),skeleton.getAddress().getPortNumber());
         stubbed.setS("Same instance?");
         assertEquals("Same instance?", stubbed.getS());
@@ -68,7 +68,7 @@ public class DistribTest {
 
     @Test
     public void createStub() throws Throwable {
-        Stubbed stubbed = (Stubbed) DependencyManager.createInstance(Stubbed.class);
+        Stubbed stubbed = DependencyManager.createInstance(Stubbed.class);
         assertNotNull(stubbed);
     }
 
@@ -76,12 +76,12 @@ public class DistribTest {
     public void createClient() throws Throwable {
         Skeleton skeleton = (Skeleton) DependencyManager.createInstance(SkeletonImpl.class);
         skeleton.run();
-        DependencyManager dependencyManager = (DependencyManager) DependencyManager.createInstance(DependencyManager.class);
+        DependencyManager dependencyManager =  DependencyManager.createInstance(DependencyManager.class);
         dependencyManager.registerDependency(Stubbed.class, ()->
                 (Stubbed) StubFactory.createStub(Stubbed.class,
                 skeleton.getAddress().getIpAddress(),
                 skeleton.getAddress().getPortNumber()));
-        SampleClient sampleClient = (SampleClient) DependencyManager.createInstance(SampleClient.class);
+        SampleClient sampleClient =  DependencyManager.createInstance(SampleClient.class);
         sampleClient.run();
     }
 

@@ -17,16 +17,15 @@ public class DependencyResolver {
 
     /**
      * Reads all classes using {@link ClassScanner#scan()} and verifies the classes
-     * @param classConstructorHashMap
      * @throws Throwable
      */
-    public static void init(HashMap<Class, Supplier> classConstructorHashMap) throws Throwable {
+    public static void init() throws Throwable {
         scannedClasses = new HashMap<>();
         for (Class clazz :ClassScanner.scan()) {
             scannedClasses.putIfAbsent(clazz, false);
         }
         for (Class clazz: scannedClasses.keySet()) {
-            verifyClassDependencies(classConstructorHashMap,scannedClasses, clazz);
+            verifyClassDependencies(DependencyInstanstatior.getDependencySuppliers(),scannedClasses, clazz);
         }
     }
 

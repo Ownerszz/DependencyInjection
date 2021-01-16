@@ -2,7 +2,7 @@ package ownerszz.libraries.dependency.injection.core;
 
 import java.util.HashMap;
 
-import static ownerszz.libraries.dependency.injection.core.DependencyManager.createInstanceNoLifecycleChecks;
+
 
 
 /**
@@ -15,12 +15,12 @@ public class SingletonDependencyManager {
     protected SingletonDependencyManager(){
         singletons = new HashMap<>();
     }
-    protected Object createOrGetInstance(Class clazz) throws Throwable {
+    protected <T> T createOrGetInstance(Class<T> clazz) throws Throwable {
         Object instance = singletons.get(clazz);
         if(instance == null){
-            instance = createInstanceNoLifecycleChecks(clazz);
+            instance = DependencyInstanstatior.createInstance(clazz);
             singletons.put(clazz,instance);
         }
-        return instance;
+        return (T) instance;
     }
 }

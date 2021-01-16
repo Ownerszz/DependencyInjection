@@ -1,10 +1,13 @@
 package ownerszz.libraries.dependency.injection.core;
 
+import ownerszz.libraries.dependency.injection.core.cold.dependency.ColdDependency;
 import ownerszz.libraries.dependency.injection.model.TestInterfaceService;
 import ownerszz.libraries.dependency.injection.model.TestObject;
 import ownerszz.libraries.dependency.injection.model.TestObjectWithResolvableConstructor;
 import ownerszz.libraries.dependency.injection.model.TestObjectWithSlowConstructor;
+import ownerszz.libraries.dependency.injection.model.deep.dependencies.TestObjectChainedSlowConstructor;
 import ownerszz.libraries.dependency.injection.model.deep.dependencies.TestObjectWithDeepDependencies;
+import ownerszz.libraries.dependency.injection.model.deep.dependencies.TestObjectWithDeepSlowConstructor;
 import ownerszz.libraries.dependency.injection.util.UsableClassesGenerator;
 
 import org.junit.AfterClass;
@@ -90,11 +93,41 @@ public class DependencyManagerTest {
 
     @Test
     public void invokeColdDependencyMethod() throws Throwable{
+        long before = System.currentTimeMillis();
+        //Constructor takes 10s to complete
         TestObjectWithSlowConstructor testObjectWithSlowConstructor = DependencyManager.createInstance(TestObjectWithSlowConstructor.class);
+        long after = System.currentTimeMillis();
+        assertTrue((after - before) / 1000 <= 3);
         testObjectWithSlowConstructor.setTextField("test");
-        testObjectWithSlowConstructor.setTextField("thisWorks?");
-        String temp = testObjectWithSlowConstructor.getSomething();
         assertEquals("test",testObjectWithSlowConstructor.getTextField());
+    }
+
+    @Test
+    public void createDeepColdDependencies() throws Throwable{
+        long before = System.currentTimeMillis();
+        //Constructor takes 10s to complete
+        TestObjectWithDeepSlowConstructor testObjectWithDeepSlowConstructor = DependencyManager.createInstance(TestObjectWithDeepSlowConstructor.class);
+        long after = System.currentTimeMillis();
+        assertTrue((after - before) / 1000 <= 3);
+        assertNotNull(testObjectWithDeepSlowConstructor);
+        assertNotNull(testObjectWithDeepSlowConstructor.getObjectWithSlowConstructor());
+        assertNotNull(testObjectWithDeepSlowConstructor.getTestObjectWithDeepDependencies());
+        testObjectWithDeepSlowConstructor.getObjectWithSlowConstructor().setTextField("test");
+        assertEquals("test",testObjectWithDeepSlowConstructor.getObjectWithSlowConstructor().getTextField());
+    }
+
+    @Test
+    public void createChainedColdDependencies() throws Throwable{
+        long before = System.currentTimeMillis();
+        //Constructor takes 10s to complete
+        TestObjectChainedSlowConstructor testObjectWithDeepSlowConstructor = DependencyManager.createInstance(TestObjectChainedSlowConstructor.class);
+        long after = System.currentTimeMillis();
+        assertTrue((after - before) / 1000 <= 3);
+        assertNotNull(testObjectWithDeepSlowConstructor);
+        assertNotNull(testObjectWithDeepSlowConstructor.getTestObjectWithDeepSlowConstructor());
+        //COLD -> WARM -> COLD -> method
+        testObjectWithDeepSlowConstructor.getTestObjectWithDeepSlowConstructor().getObjectWithSlowConstructor().setTextField("test");
+        assertEquals("test",testObjectWithDeepSlowConstructor.getTestObjectWithDeepSlowConstructor().getObjectWithSlowConstructor().getTextField());
     }
 
 

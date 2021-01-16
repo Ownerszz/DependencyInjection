@@ -2,6 +2,7 @@ package ownerszz.libraries.dependency.injection.model;
 
 import ownerszz.libraries.dependency.injection.core.Dependency;
 import ownerszz.libraries.dependency.injection.core.DependencyCreation;
+import ownerszz.libraries.dependency.injection.core.cold.dependency.ColdDependency;
 
 @Dependency(creationType = DependencyCreation.COLD)
 public class TestObjectWithSlowConstructor {
@@ -18,11 +19,9 @@ public class TestObjectWithSlowConstructor {
         return textField;
     }
 
-    public String getSomething(){
-        return "hey";
-    }
 
     public void setTextField(String textField) {
         this.textField = textField;
     }
+
 }

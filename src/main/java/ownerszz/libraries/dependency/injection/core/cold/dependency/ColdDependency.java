@@ -4,6 +4,7 @@ import net.bytebuddy.dynamic.scaffold.InstrumentedType;
 
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import ownerszz.libraries.dependency.injection.core.DependencyInstanstatior;
@@ -34,6 +35,7 @@ public class ColdDependency {
         });
     }
 
+    @RuntimeType
     public Object invoke(@Origin String methodName, @AllArguments Object[] args) throws Exception {
         Class[] argTypes = new Class[args.length];
         for (int i = 0; i < args.length; i++) {
@@ -46,6 +48,7 @@ public class ColdDependency {
         if (foundMethod.isEmpty()){
             throw new NoSuchMethodException();
         }
+
         Method toInvoke = foundMethod.get();
         Object impl = dependency.get();
         Object result = toInvoke.invoke(impl,args);

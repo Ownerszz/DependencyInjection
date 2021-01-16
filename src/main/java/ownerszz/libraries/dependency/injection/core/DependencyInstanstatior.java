@@ -47,9 +47,10 @@ public class DependencyInstanstatior {
             Object instance;
             Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
             if (dependency.creationType() == DependencyCreation.COLD){
+                ColdDependency coldDependency = new ColdDependency(clazz);
                 Class<? extends T> coldClass = new ByteBuddy()
                         .subclass(clazz)
-                        .method(ElementMatchers.any()).intercept(MethodDelegation.to(new ColdDependency(clazz)))
+                        .method(ElementMatchers.any()).intercept(MethodDelegation.to(coldDependency,ColdDependency.class))
                         .make()
                         .load(clazz.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
                         .getLoaded();

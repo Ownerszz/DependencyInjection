@@ -55,6 +55,7 @@ public class DependencyInstanstatior {
                         .load(clazz.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
                         .getLoaded();
                 instance = ObjenesisHelper.newInstance(coldClass);
+                //coldDependency.bindColdDependencyWith(instance);
             }else if (mustBeProxied(clazz)){
                 //Registered annotation?
                 Optional<Annotation> ann = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).findFirst();

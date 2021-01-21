@@ -2,22 +2,19 @@ package ownerszz.libraries.dependency.injection.core.cold.dependency;
 
 import net.bytebuddy.dynamic.scaffold.InstrumentedType;
 
-import net.bytebuddy.implementation.bind.annotation.AllArguments;
-import net.bytebuddy.implementation.bind.annotation.Origin;
-import net.bytebuddy.implementation.bind.annotation.RuntimeType;
-import net.bytebuddy.implementation.bind.annotation.SuperCall;
+import net.bytebuddy.implementation.FieldAccessor;
+import net.bytebuddy.implementation.Implementation;
+import net.bytebuddy.implementation.bind.annotation.*;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import ownerszz.libraries.dependency.injection.core.DependencyInstanstatior;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,10 +33,12 @@ public class ColdDependency {
                 dependency.completeExceptionally(e);
             }
         });
+
     }
 
     @RuntimeType
-    public Object invoke(@Origin String methodName, @AllArguments Object[] args) throws Exception {
+    public Object invoke(@This Object proxy, @Origin String methodName, @AllArguments Object[] args) throws Exception {
+
         Class[] argTypes = new Class[args.length];
         for (int i = 0; i < args.length; i++) {
             argTypes[i] = args[i].getClass();
@@ -55,7 +54,18 @@ public class ColdDependency {
         Method toInvoke = foundMethod.get();
         Object impl = dependency.get();
         Object result = toInvoke.invoke(impl,args);
-
+        updateColdDependencyFieldsToMatchImpl(proxy);
         return result;
     }
+
+    private void updateColdDependencyFieldsToMatchImpl(Object proxy) throws Exception {
+        Class proxyClass = proxy.getClass().getSuperclass();
+        for (Field field:proxyClass.getDeclaredFields()) {
+            field.setAccessible(true);
+            Object implValue = field.get(dependency.get());
+            field.set(proxy,implValue);
+        }
+
+    }
+
 }

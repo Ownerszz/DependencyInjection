@@ -8,7 +8,7 @@ secrets.load(new FileInputStream(secretsFile))
 
 group 'ownerszz.libraries'
 
-version '2.0'
+version '2.1'
 
 repositories {
     mavenLocal()
@@ -48,7 +48,7 @@ task fatJar(type: Jar) {
 
 task release(type: Copy){
     dependsOn tasks.findByName("fatJar")
-    from file("${buildDir}/libs/DependencyInjection-${version}.jar")
+    from file("${buildDir}/libs/dependency-injection-${version}.jar")
     into "${projectDir}/release"
 }
 

@@ -6,8 +6,10 @@ import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.bind.annotation.*;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
+import org.objenesis.instantiator.annotations.Instantiator;
 import ownerszz.libraries.dependency.injection.core.DependencyInstanstatior;
 
+import java.beans.Transient;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

@@ -1,8 +1,10 @@
 package ownerszz.libraries.dependency.injection.core;
 
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.NamingStrategy;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
@@ -49,13 +51,14 @@ public class DependencyInstanstatior {
             if (dependency.creationType() == DependencyCreation.COLD){
                 ColdDependency coldDependency = new ColdDependency(clazz);
                 Class<? extends T> coldClass = new ByteBuddy()
+                        .with(new NamingStrategy.SuffixingRandom("dependency"))
                         .subclass(clazz)
                         .method(ElementMatchers.any()).intercept(MethodDelegation.to(coldDependency,ColdDependency.class))
                         .make()
                         .load(clazz.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
                         .getLoaded();
                 instance = ObjenesisHelper.newInstance(coldClass);
-                //coldDependency.bindColdDependencyWith(instance);
+
             }else if (mustBeProxied(clazz)){
                 //Registered annotation?
                 Optional<Annotation> ann = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).findFirst();

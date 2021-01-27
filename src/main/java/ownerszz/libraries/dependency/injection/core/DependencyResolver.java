@@ -1,6 +1,8 @@
 package ownerszz.libraries.dependency.injection.core;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
 import org.objenesis.ObjenesisHelper;
 
@@ -14,12 +16,13 @@ import java.util.function.Supplier;
  */
 public class DependencyResolver {
     private static HashMap<Class, Boolean> scannedClasses;
-
+    private static final Logger logger = LoggerFactory.getLogger(DependencyResolver.class);
     /**
      * Reads all classes using {@link ClassScanner#scan()} and verifies the classes
      * @throws Throwable
      */
     public static void init() throws Throwable {
+        logger.info("Start class scanning");
         scannedClasses = new HashMap<>();
         for (Class clazz :ClassScanner.scan()) {
             scannedClasses.putIfAbsent(clazz, false);
@@ -27,6 +30,7 @@ public class DependencyResolver {
         for (Class clazz: scannedClasses.keySet()) {
             verifyClassDependencies(DependencyInstanstatior.getDependencySuppliers(),scannedClasses, clazz);
         }
+        logger.info("Finished class scanning");
     }
 
     public static void verifyClassDependencies(HashMap<Class,Supplier> ctors,Class clazz){
@@ -42,6 +46,7 @@ public class DependencyResolver {
      * @param <T> type parameter
      */
     public static<T> void verifyClassDependencies(HashMap<Class,Supplier> ctors,HashMap<Class, Boolean> classes,Class<T> clazz) {
+        logger.debug("Creating a supplier for class: " + clazz.getName());
         if (scannedClasses == null){
             scannedClasses = classes;
         }

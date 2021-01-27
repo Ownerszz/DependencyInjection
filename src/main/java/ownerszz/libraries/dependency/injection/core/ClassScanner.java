@@ -33,7 +33,7 @@ public class ClassScanner {
         try {
             temp = getAllKnownClasses();
         }catch (Throwable ignored){
-            logger.warn(ignored.getMessage());
+            logger.debug(ignored.getMessage());
         }
         if (temp == null){
             throw new RuntimeException("No classes found");
@@ -59,7 +59,7 @@ public class ClassScanner {
             try {
                 classFiles.addAll(getClassesFromPath(file));
             }catch (Throwable ignored){
-                logger.warn(ignored.getMessage());
+                logger.debug(ignored.getMessage());
             }
         }
         return classFiles;
@@ -222,7 +222,7 @@ public class ClassScanner {
             Class clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
             classes.add(clazz);
         } catch (Throwable ignored) {
-            logger.warn("Failed to load class: " +  className);
+            logger.debug("Failed to load class: " +  className);
         }
     }
 }

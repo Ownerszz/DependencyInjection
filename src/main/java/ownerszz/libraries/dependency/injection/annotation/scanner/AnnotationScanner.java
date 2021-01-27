@@ -184,9 +184,9 @@ public class AnnotationScanner {
         for (Class clazz: slowClasses) {
             Boolean resolvable = isResolvable(clazz,11);
             if (resolvable != null && resolvable){
-               logger.info("Successfully resolved class: " + clazz.getName() + " even when it was deep.");
+               logger.debug("Successfully resolved class: " + clazz.getName() + " even when it was deep.");
             }else {
-                logger.warn("Failed to resolve class: " + clazz.getName() + " because it is too deep for us to resolve it.");
+                logger.debug("Failed to resolve class: " + clazz.getName() + " because it is too deep for us to resolve it.");
             }
         }
         slowClasses.clear();

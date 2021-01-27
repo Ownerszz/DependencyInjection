@@ -2,6 +2,9 @@ package ownerszz.libraries.dependency.injection.core;
 
 
 
+import org.apache.log4j.BasicConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
 
 import java.lang.annotation.Annotation;
@@ -26,7 +29,7 @@ public class DependencyManager {
 
 
     private static HashMap<Class, DependencyLifecycle> dependencyLifecycleHashMap;
-
+    private static final Logger logger = LoggerFactory.getLogger(DependencyManager.class);
 
     private static ThreadPoolExecutor threadPoolExecutor;
     private static boolean registratorsRunned = false;
@@ -56,6 +59,10 @@ public class DependencyManager {
      * @throws Throwable
      */
     public static void run(boolean selfInit) throws Throwable {
+        long startTime = System.currentTimeMillis();
+        logger.info("Starting the dependency manager.");
+        //System.out.println("Starting the dependency manager.");
+        BasicConfigurator.configure();
         if (selfInit){
             dependencyLifecycleHashMap = new HashMap<>();
             singletonDependencyManager = new SingletonDependencyManager();
@@ -65,6 +72,9 @@ public class DependencyManager {
             invokeRegistrators();
             runRunnableDependencies();
         }
+        long endTime = System.currentTimeMillis();
+        //System.out.println("Finished creating the dependency manager in: " + (endTime-startTime)/1000 + "ms");
+        logger.info("Finished creating the dependency manager in: " + (endTime-startTime)/1000 + "ms");
     }
 
     /**
@@ -73,12 +83,14 @@ public class DependencyManager {
      */
     public static void invokeRegistrators() throws Throwable {
         if (!registratorsRunned){
+            logger.info("Initialising dependency registrators.");
             for (Class clazz: DependencyInstanstatior.getDependencySuppliers().keySet()) {
                 if (clazz.isAnnotationPresent(DependencyRegistrator.class)){
                     createInstance(clazz);
                 }
             }
             registratorsRunned = true;
+            logger.info("All dependency registrators initialised.");
         }
     }
 
@@ -89,6 +101,7 @@ public class DependencyManager {
      */
     public static void runRunnableDependencies() throws Throwable {
         if(!runnableDependenciesRunned){
+            logger.info("Running runnable dependencies.");
             threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
             for (Class<?> clazz: DependencyInstanstatior.getDependencySuppliers().keySet().stream().filter(e-> !e.isAnnotation()).collect(Collectors.toList())) {
                 Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
@@ -98,6 +111,8 @@ public class DependencyManager {
                 }
             }
             runnableDependenciesRunned = true;
+            logger.info("All runnable dependencies are running.");
+
         }
     }
 
@@ -194,6 +209,7 @@ public class DependencyManager {
      * @see DependencyManager#registerDependency(Class, Supplier, DependencyLifecycle)
      */
     public static void forceRegisterClass(Class clazz, DependencyLifecycle dependencyLifecycle) throws Exception {
+        logger.debug(String.format("Force registering (%s) class: %s", dependencyLifecycle.name(), clazz.getName()));
         DependencyResolver.addClassToScannedClasses(clazz);
         Boolean result = AnnotationScanner.isResolvable(clazz,1);
         if (result == null){

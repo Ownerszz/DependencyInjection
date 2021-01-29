@@ -35,7 +35,7 @@ public class ClassScanner {
         }catch (Throwable ignored){
             logger.debug(ignored.getMessage());
         }
-        if (temp == null){
+        if (temp == null || temp.size() == 0){
             throw new RuntimeException("No classes found");
         }
         for (Class clazz: temp) {
@@ -49,6 +49,8 @@ public class ClassScanner {
             }
         }
         AnnotationScanner.tryResolveSlowClasses();
+
+        logger.debug("Successfully scanned {} classes", temp.size());
         return classes;
     }
 

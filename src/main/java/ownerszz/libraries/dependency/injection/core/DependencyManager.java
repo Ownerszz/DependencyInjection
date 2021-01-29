@@ -74,7 +74,7 @@ public class DependencyManager {
         }
         long endTime = System.currentTimeMillis();
         //System.out.println("Finished creating the dependency manager in: " + (endTime-startTime)/1000 + "ms");
-        logger.info("Finished creating the dependency manager in: " + (endTime-startTime)/1000 + "ms");
+        logger.info("Finished creating the dependency manager in: " +  (endTime-startTime)+ "ms");
     }
 
     /**

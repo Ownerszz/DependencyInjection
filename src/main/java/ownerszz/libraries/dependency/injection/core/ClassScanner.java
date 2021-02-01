@@ -20,9 +20,9 @@ import java.util.jar.JarFile;
  * Copied from:
  *
  * Find classes in the classpath (reads JARs and classpath folders).
- *
+ * https://gist.github.com/pal
  * @author P&aring;l Brattberg, brattberg@gmail.com
- * @see  http://gist.github.com/pal
+ *
  */
 
 public class ClassScanner {

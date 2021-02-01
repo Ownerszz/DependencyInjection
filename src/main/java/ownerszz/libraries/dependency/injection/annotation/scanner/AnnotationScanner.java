@@ -1,8 +1,11 @@
 package ownerszz.libraries.dependency.injection.annotation.scanner;
 
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.description.type.TypeDescription;
 import ownerszz.libraries.dependency.injection.core.Dependency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ownerszz.libraries.dependency.injection.utils.AnnotationUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -175,6 +178,23 @@ public class AnnotationScanner {
         //A temp = (A) clazz.getAnnotation(result);
 
        return (A) result;
+    }
+
+    public static <A> List<A> findAnnotationsInClass(Class target, Class<A> annotation){
+        List<A> found = new ArrayList<>();
+        if (target == Object.class || target==null || AnnotationUtils.isDefaultAnnotation(target)){
+            return found;
+        }
+        for (Annotation ann: target.getDeclaredAnnotations()) {
+            if(ann.annotationType() == annotation){
+                found.add((A) ann);
+            }else {
+                found.addAll(findAnnotationsInClass(ann.annotationType(), annotation));
+            }
+        }
+
+        return found;
+
     }
 
     /**

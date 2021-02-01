@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
 import org.objenesis.ObjenesisHelper;
+import ownerszz.libraries.dependency.injection.core.arguments.ArgumentReader;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -15,22 +16,21 @@ import java.util.function.Supplier;
  * This class will also setup basic {@link Supplier instantiators} for the {@link Dependency dependencies}.
  */
 public class DependencyResolver {
-    private static HashMap<Class, Boolean> scannedClasses;
+    private static HashMap<Class, Boolean> scannedClasses = new HashMap<>();;
     private static final Logger logger = LoggerFactory.getLogger(DependencyResolver.class);
     /**
      * Reads all classes using {@link ClassScanner#scan()} and verifies the classes
      * @throws Throwable
      */
     public static void init() throws Throwable {
-        logger.info("Start class scanning");
-        scannedClasses = new HashMap<>();
-        for (Class clazz :ClassScanner.scan()) {
-            scannedClasses.putIfAbsent(clazz, false);
-        }
-        for (Class clazz: scannedClasses.keySet()) {
-            verifyClassDependencies(DependencyInstanstatior.getDependencySuppliers(),scannedClasses, clazz);
-        }
-        logger.info("Finished class scanning");
+            logger.info("Start class scanning");
+            for (Class clazz :ClassScanner.scan()) {
+                scannedClasses.putIfAbsent(clazz, false);
+            }
+            for (Class clazz: scannedClasses.keySet()) {
+                verifyClassDependencies(DependencyInstanstatior.getDependencySuppliers(),scannedClasses, clazz);
+            }
+            logger.info("Finished class scanning");
     }
 
     public static void verifyClassDependencies(HashMap<Class,Supplier> ctors,Class clazz){
@@ -50,6 +50,15 @@ public class DependencyResolver {
         if (scannedClasses == null){
             scannedClasses = classes;
         }
+        findBestConstructor(clazz);
+        classes.put(clazz, true);
+        ctors.put(clazz,createSupplier(clazz));
+
+
+
+    }
+
+    private static Constructor findBestConstructor(Class clazz){
         List<Constructor> constructors = Arrays.asList(clazz.getDeclaredConstructors());
         Constructor constructor;
 
@@ -65,7 +74,7 @@ public class DependencyResolver {
                                     new RuntimeException("No constructor marked with @ResolveDependencies found for class: " + clazz.getName())));
 
             for (Class parameterType:constructor.getParameterTypes()) {
-                Boolean resolved = classes.get(parameterType);
+                Boolean resolved = scannedClasses.get(parameterType);
                 if (resolved == null && !ClassUtil.isCollection(parameterType)){
                     throw new RuntimeException("Unknown dependency in constructor of type: " + parameterType.getSimpleName());
                 }
@@ -74,7 +83,7 @@ public class DependencyResolver {
                         throw new RuntimeException("Circular dependency detected between: " + clazz.getName() + " and " + parameterType.getName());
                     }
                     if (AnnotationScanner.isAnnotationPresent(parameterType,Dependency.class)){
-                        verifyClassDependencies(ctors,classes, parameterType);
+                        verifyClassDependencies(DependencyInstanstatior.getDependencySuppliers(),scannedClasses, parameterType);
                     }else {
                         throw new RuntimeException("Class: " + parameterType.getName() + " not marked with @Dependency but is found in a constructor marked with @ResolveDependencies");
                     }
@@ -83,10 +92,13 @@ public class DependencyResolver {
         }else {
             constructor = null;
         }
+        return constructor;
+    }
 
-        classes.put(clazz, true);
-        ctors.put(clazz, ()-> {
+    public static Supplier createSupplier(Class clazz){
+        return ()-> {
             try {
+                Constructor constructor = findBestConstructor(clazz);
                 if (constructor == null){
                     if (clazz.isInterface()){
                         Object instance = CustomizedProxyGenerator.createInterfaceInstance(clazz);
@@ -125,8 +137,7 @@ public class DependencyResolver {
                 e.printStackTrace();
                 return null;
             }
-        });
-
+        };
     }
 
     /**

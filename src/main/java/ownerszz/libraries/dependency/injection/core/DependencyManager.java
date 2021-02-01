@@ -6,12 +6,9 @@ import org.apache.log4j.BasicConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
+import ownerszz.libraries.dependency.injection.core.arguments.ArgumentReader;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
 import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
@@ -54,21 +51,26 @@ public class DependencyManager {
     /**
      *
      * @param selfInit Do you want the container to initialise itself if not use {@link DependencyManager#use(HashMap)} and
-     *                 {@link DependencyManager#invokeRegistrators()} and {@link DependencyManager#runRunnableDependencies()
+     *                 {@link DependencyManager#invokeRegistrators()} and {@link DependencyManager#runRunnableDependencies()}
      *
      * @throws Throwable
      */
-    public static void run(boolean selfInit) throws Throwable {
+    public static void run(Class configClass,boolean selfInit, Object... args) throws Throwable {
         long startTime = System.currentTimeMillis();
         logger.info("Starting the dependency manager.");
         //System.out.println("Starting the dependency manager.");
         BasicConfigurator.configure();
         if (selfInit){
+
             dependencyLifecycleHashMap = new HashMap<>();
             singletonDependencyManager = new SingletonDependencyManager();
             scopedDependencyManager = new ScopedDependencyManager();
             DependencyResolver.init();
             forceRegisterClass(DependencyManager.class);
+            if (configClass != null){
+                ArgumentReader.readArgumentsFromConfigClass(configClass);
+            }
+            ArgumentReader.readArguments(args);
             invokeRegistrators();
             runRunnableDependencies();
         }

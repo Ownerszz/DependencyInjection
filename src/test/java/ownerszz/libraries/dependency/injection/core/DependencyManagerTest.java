@@ -133,7 +133,7 @@ public class DependencyManagerTest {
 
     @Test
     public void run() throws Throwable {
-        DependencyManager.run(false);
+        DependencyManager.run(Object.class,false);
     }
 
 

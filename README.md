@@ -9,14 +9,14 @@ Use the jar supplied in this repo or build from source using gradle jar or gradl
 ### OR
 **GRADLE**
 
-``implementation 'ownerszz.libraries:dependency-injection:2.1'``
+``implementation 'ownerszz.libraries:dependency-injection:2.2'``
 
 **MAVEN**
 ```
  <dependency>
       <groupId>ownerszz.libraries</groupId>
       <artifactId>dependency-injection</artifactId>
-      <version>2.1</version>
+      <version>2.2</version>
  </dependency>
 ```
 

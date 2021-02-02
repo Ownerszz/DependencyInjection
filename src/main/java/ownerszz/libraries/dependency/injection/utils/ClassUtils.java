@@ -1,5 +1,8 @@
 package ownerszz.libraries.dependency.injection.utils;
 
+import java.util.Collection;
+import java.util.Map;
+
 public class ClassUtils {
     public static boolean isCharacter(Class clazz) {
         return getClassName(clazz).equalsIgnoreCase("character") || getClassName(clazz).equalsIgnoreCase("char");
@@ -35,6 +38,10 @@ public class ClassUtils {
 
     public static boolean isInteger(Class clazz) {
         return getClassName(clazz).equalsIgnoreCase("integer") || getClassName(clazz).equalsIgnoreCase("int");
+    }
+
+    public static boolean isCollection(Class clazz){
+        return Collection.class.isAssignableFrom(clazz) || Map.class.isAssignableFrom(clazz);
     }
 
     public boolean isStringOrPrimitive(Class clazz) {

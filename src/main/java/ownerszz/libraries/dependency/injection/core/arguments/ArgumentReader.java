@@ -3,6 +3,7 @@ package ownerszz.libraries.dependency.injection.core.arguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
+import ownerszz.libraries.dependency.injection.logging.ContainerLogger;
 import ownerszz.libraries.dependency.injection.utils.DefaultValueGetter;
 
 import java.util.HashMap;
@@ -11,11 +12,10 @@ import static ownerszz.libraries.dependency.injection.utils.ClassUtils.*;
 
 public class ArgumentReader {
     private static HashMap<String, String> arguments = new HashMap<>();
-    private static final Logger logger = LoggerFactory.getLogger(ArgumentReader.class);
-    public static void readArguments(Object... args){
-        for (Object arg: args) {
-            String key = arg.toString().split("=")[0];
-            String value = arg.toString().split("=")[1];
+    public static void readArguments(String... args){
+        for (String arg: args) {
+            String key = arg.split("=")[0];
+            String value = arg.split("=")[1];
             arguments.put(key,value);
         }
     }
@@ -28,7 +28,6 @@ public class ArgumentReader {
     public static <T> T getValueFromArgumentsAs(String key, Class<T> type){
         String value = arguments.get(key);
         if (value == null){
-           logger.warn("Key: {}   not found.",key );
            return (T) DefaultValueGetter.getDefaultValue(type);
         }
         if (isInteger(type)) {

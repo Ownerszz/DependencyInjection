@@ -17,7 +17,7 @@ import java.lang.annotation.*;
  * @see AnnotationScanner
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Inherited
 public @interface Dependency {
     boolean runnable() default false;

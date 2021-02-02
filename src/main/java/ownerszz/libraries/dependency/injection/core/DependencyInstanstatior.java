@@ -101,4 +101,9 @@ public class DependencyInstanstatior {
         return clazz.isInterface() || proxyHandlers.containsKey(clazz)
                 || AnnotationScanner.getAnnotationsOfClass(clazz).stream().anyMatch(e-> annotationsToProxy.containsKey(e.annotationType()));
     }
+
+    public static <T> void registerDependency(Class<T> clazz, Supplier<T> instantiator, Dependency dependency) {
+        dependencySuppliers.put(clazz, instantiator);
+        AnnotationScanner.addAnnotationToClass(clazz, dependency);
+    }
 }

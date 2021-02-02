@@ -5,7 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
 import org.objenesis.ObjenesisHelper;
-import ownerszz.libraries.dependency.injection.core.arguments.ArgumentReader;
+import ownerszz.libraries.dependency.injection.logging.ContainerLogger;
+import ownerszz.libraries.dependency.injection.utils.ClassUtils;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -23,14 +24,14 @@ public class DependencyResolver {
      * @throws Throwable
      */
     public static void init() throws Throwable {
-            logger.info("Start class scanning");
+        ContainerLogger.logInfo(logger,"Start class scanning");
             for (Class clazz :ClassScanner.scan()) {
                 scannedClasses.putIfAbsent(clazz, false);
             }
             for (Class clazz: scannedClasses.keySet()) {
                 verifyClassDependencies(DependencyInstanstatior.getDependencySuppliers(),scannedClasses, clazz);
             }
-            logger.info("Finished class scanning");
+        ContainerLogger.logInfo(logger,"Finished class scanning");
     }
 
     public static void verifyClassDependencies(HashMap<Class,Supplier> ctors,Class clazz){
@@ -46,7 +47,7 @@ public class DependencyResolver {
      * @param <T> type parameter
      */
     public static<T> void verifyClassDependencies(HashMap<Class,Supplier> ctors,HashMap<Class, Boolean> classes,Class<T> clazz) {
-        logger.debug("Creating a supplier for class: " + clazz.getName());
+        ContainerLogger.logDebug(logger,"Creating a supplier for class: " + clazz.getName());
         if (scannedClasses == null){
             scannedClasses = classes;
         }
@@ -75,7 +76,7 @@ public class DependencyResolver {
 
             for (Class parameterType:constructor.getParameterTypes()) {
                 Boolean resolved = scannedClasses.get(parameterType);
-                if (resolved == null && !ClassUtil.isCollection(parameterType)){
+                if (resolved == null && !ClassUtils.isCollection(parameterType)){
                     throw new RuntimeException("Unknown dependency in constructor of type: " + parameterType.getSimpleName());
                 }
                 if (resolved != null && !resolved){
@@ -112,7 +113,7 @@ public class DependencyResolver {
                 Class[] parameterTypes=constructor.getParameterTypes();
                 for (int i = 0; i < constructor.getParameterCount(); i++) {
                     try {
-                        if (ClassUtil.isCollection(parameterTypes[i])){
+                        if (ClassUtils.isCollection(parameterTypes[i])){
                             Collection collection = new ArrayList();
                             Class type = (Class) ((ParameterizedType) constructor.getParameters()[i].getParameterizedType()).getActualTypeArguments()[0];
                             for (Class implType: ClassScanner.getMatchingClasses(type)) {

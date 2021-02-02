@@ -9,7 +9,7 @@ secrets.load(new FileInputStream(secretsFile))
 
 group 'ownerszz.libraries'
 
-version '2.2'
+version '2.3'
 java {
     withSourcesJar()
     withJavadocJar()

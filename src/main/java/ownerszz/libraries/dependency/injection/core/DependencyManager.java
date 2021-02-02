@@ -7,6 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
 import ownerszz.libraries.dependency.injection.core.arguments.ArgumentReader;
+import ownerszz.libraries.dependency.injection.core.configuration.ContainerConfig;
+import ownerszz.libraries.dependency.injection.core.configuration.DependencyConfigurer;
+import ownerszz.libraries.dependency.injection.logging.ContainerLogger;
 
 import java.util.HashMap;
 import java.util.concurrent.Executors;
@@ -55,11 +58,10 @@ public class DependencyManager {
      *
      * @throws Throwable
      */
-    public static void run(Class configClass,boolean selfInit, Object... args) throws Throwable {
+    public static void run(Class configClass,boolean selfInit, String... args) throws Throwable {
         long startTime = System.currentTimeMillis();
-        logger.info("Starting the dependency manager.");
-        //System.out.println("Starting the dependency manager.");
         BasicConfigurator.configure();
+        logger.info("Starting the dependency manager.");
         if (selfInit){
 
             dependencyLifecycleHashMap = new HashMap<>();
@@ -72,11 +74,19 @@ public class DependencyManager {
             }
             ArgumentReader.readArguments(args);
             invokeRegistrators();
+            readConfigurations();
             runRunnableDependencies();
         }
         long endTime = System.currentTimeMillis();
-        //System.out.println("Finished creating the dependency manager in: " + (endTime-startTime)/1000 + "ms");
         logger.info("Finished creating the dependency manager in: " +  (endTime-startTime)+ "ms");
+    }
+
+    private static void readConfigurations() throws Throwable {
+        DependencyConfigurer.readConfigurations(DependencyInstanstatior.getDependencySuppliers().keySet()
+                .stream()
+                .filter(e-> !e.isAnnotation() && AnnotationScanner.isAnnotationPresent(e, ContainerConfig.class))
+                .collect(Collectors.toList()));
+
     }
 
     /**
@@ -85,14 +95,14 @@ public class DependencyManager {
      */
     public static void invokeRegistrators() throws Throwable {
         if (!registratorsRunned){
-            logger.info("Initialising dependency registrators.");
+            ContainerLogger.logInfo(logger,"Initialising dependency registrators.");
             for (Class clazz: DependencyInstanstatior.getDependencySuppliers().keySet()) {
                 if (clazz.isAnnotationPresent(DependencyRegistrator.class)){
                     createInstance(clazz);
                 }
             }
             registratorsRunned = true;
-            logger.info("All dependency registrators initialised.");
+            ContainerLogger.logInfo(logger,"All dependency registrators initialised.");
         }
     }
 
@@ -103,7 +113,7 @@ public class DependencyManager {
      */
     public static void runRunnableDependencies() throws Throwable {
         if(!runnableDependenciesRunned){
-            logger.info("Running runnable dependencies.");
+            ContainerLogger.logInfo(logger,"Running runnable dependencies.");
             threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
             for (Class<?> clazz: DependencyInstanstatior.getDependencySuppliers().keySet().stream().filter(e-> !e.isAnnotation()).collect(Collectors.toList())) {
                 Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
@@ -113,7 +123,7 @@ public class DependencyManager {
                 }
             }
             runnableDependenciesRunned = true;
-            logger.info("All runnable dependencies are running.");
+            ContainerLogger.logInfo(logger,"All runnable dependencies are running.");
 
         }
     }
@@ -170,6 +180,10 @@ public class DependencyManager {
         dependencyLifecycleHashMap.put(clazz, dependencyLifecycle);
     }
 
+    public <T> void registerDependency(Class<T> clazz, Supplier<T> instantiator, Dependency dependency){
+        DependencyInstanstatior.registerDependency(clazz,instantiator, dependency);
+    }
+
     /**
      * Register a function to invoke after a instance marked with {@code annotationClass} is {@link DependencyManager#createInstance(Class) created}
      * This will also set it's life time to {@link DependencyLifecycle#TRANSIENT}
@@ -211,7 +225,7 @@ public class DependencyManager {
      * @see DependencyManager#registerDependency(Class, Supplier, DependencyLifecycle)
      */
     public static void forceRegisterClass(Class clazz, DependencyLifecycle dependencyLifecycle) throws Exception {
-        logger.debug(String.format("Force registering (%s) class: %s", dependencyLifecycle.name(), clazz.getName()));
+        ContainerLogger.logDebug(logger,String.format("Force registering (%s) class: %s", dependencyLifecycle.name(), clazz.getName()));
         DependencyResolver.addClassToScannedClasses(clazz);
         Boolean result = AnnotationScanner.isResolvable(clazz,1);
         if (result == null){

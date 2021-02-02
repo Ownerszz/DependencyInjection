@@ -3,6 +3,7 @@ package ownerszz.libraries.dependency.injection.core;
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ownerszz.libraries.dependency.injection.logging.ContainerLogger;
 
 
 import java.io.File;
@@ -33,7 +34,7 @@ public class ClassScanner {
         try {
             temp = getAllKnownClasses();
         }catch (Throwable ignored){
-            logger.debug(ignored.getMessage());
+            ContainerLogger.logDebug(logger,ignored.getMessage());
         }
         if (temp == null || temp.size() == 0){
             throw new RuntimeException("No classes found");
@@ -49,8 +50,8 @@ public class ClassScanner {
             }
         }
         AnnotationScanner.tryResolveSlowClasses();
-
-        logger.debug("Successfully scanned {} classes", temp.size());
+        AnnotationScanner.cleanup();
+        ContainerLogger.logDebug(logger,"Successfully scanned {} classes", temp.size());
         return classes;
     }
 
@@ -61,7 +62,7 @@ public class ClassScanner {
             try {
                 classFiles.addAll(getClassesFromPath(file));
             }catch (Throwable ignored){
-                logger.debug(ignored.getMessage());
+                ContainerLogger.logDebug(logger,ignored.getMessage());
             }
         }
         return classFiles;
@@ -224,7 +225,7 @@ public class ClassScanner {
             Class clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
             classes.add(clazz);
         } catch (Throwable ignored) {
-            logger.debug("Failed to load class: " +  className);
+            ContainerLogger.logDebug(logger,"Failed to load class: " +  className);
         }
     }
 }

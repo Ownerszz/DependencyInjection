@@ -5,10 +5,13 @@ import net.bytebuddy.description.type.TypeDescription;
 import ownerszz.libraries.dependency.injection.core.Dependency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ownerszz.libraries.dependency.injection.logging.ContainerLogger;
 import ownerszz.libraries.dependency.injection.utils.AnnotationUtils;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.Executors;
 
 /** This class has utility methods and keeps track of resolved classes
  *
@@ -145,6 +148,7 @@ public class AnnotationScanner {
         return knownAnnotations.get(clazz).stream().anyMatch(e -> e.annotationType().equals(annotation));
     }
 
+
     /**
      * Utility method to get a certain annotation.
      * The standard {@link Class#getAnnotation(Class)} is not enough for us
@@ -180,6 +184,14 @@ public class AnnotationScanner {
        return (A) result;
     }
 
+    /**
+     * This will look in the class itself instead of our {@link AnnotationScanner#knownAnnotations local annotation map }.
+     *
+     * @param target class to search
+     * @param annotation The annotation type to collect
+     * @param <A>
+     * @return all annotation of type A or annotations inheriting type A
+     */
     public static <A> List<A> findAnnotationsInClass(Class target, Class<A> annotation){
         List<A> found = new ArrayList<>();
         if (target == Object.class || target==null || AnnotationUtils.isDefaultAnnotation(target)){
@@ -192,9 +204,7 @@ public class AnnotationScanner {
                 found.addAll(findAnnotationsInClass(ann.annotationType(), annotation));
             }
         }
-
         return found;
-
     }
 
     /**
@@ -204,12 +214,22 @@ public class AnnotationScanner {
         for (Class clazz: slowClasses) {
             Boolean resolvable = isResolvable(clazz,11);
             if (resolvable != null && resolvable){
-               logger.debug("Successfully resolved class: " + clazz.getName() + " even when it was deep.");
+               ContainerLogger.logDebug(logger, "Successfully resolved class: " + clazz.getName() + " even when it was deep.");
             }else {
-                logger.debug("Failed to resolve class: " + clazz.getName() + " because it is too deep for us to resolve it.");
+                ContainerLogger.logDebug(logger, "Failed to resolve class: " + clazz.getName() + " because it is too deep for us to resolve it.");
             }
         }
         slowClasses.clear();
     }
 
+    public static <T> void addAnnotationToClass(Class<T> clazz, Annotation annotation) {
+        knownAnnotations.computeIfAbsent(clazz, k -> new ArrayList<>());
+        knownAnnotations.get(clazz).add(annotation);
+    }
+
+    public static void cleanup() {
+        Executors.newCachedThreadPool().submit(()->{
+            knownAnnotations.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue().size() == 0);
+        });
+    }
 }

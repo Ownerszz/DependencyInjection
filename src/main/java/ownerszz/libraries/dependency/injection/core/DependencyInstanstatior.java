@@ -15,9 +15,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class DependencyInstanstatior {
     protected static HashMap<Class, Supplier> getDependencySuppliers() {
@@ -42,7 +44,7 @@ public class DependencyInstanstatior {
     public static <T> T  createInstance(Class<T> clazz) throws Exception {
         if (dependencySuppliers.containsKey(clazz)){
             Supplier<Object> supplier = dependencySuppliers.get(clazz);
-            Object instance;
+            Object instance = null;
             Dependency dependency = AnnotationScanner.getAnnotation(clazz, Dependency.class);
             if (dependency.creationType() == DependencyCreation.COLD){
                 ColdDependency coldDependency = new ColdDependency(clazz);
@@ -55,13 +57,24 @@ public class DependencyInstanstatior {
                         .getLoaded();
                 instance = ObjenesisHelper.newInstance(coldClass);
 
-            }else if (mustBeProxied(clazz)){
-                //Registered annotation?
-                Optional<Annotation> ann = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).findFirst();
-                if (ann.isPresent()){
-                    Object preProxy = supplier.get();
-                    preProxyInstances.put(clazz,preProxy );
-                    instance = annotationsToProxy.get(ann.get().annotationType()).apply(preProxy);;
+            }
+
+            if (mustBeProxied(clazz)){
+                //Registered annotations?
+                List<Annotation> annotations = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).collect(Collectors.toList());
+                if (annotations.size() != 0){
+                    Object preProxy;
+                    if (instance == null){
+                        preProxy = supplier.get();
+                    }else {
+                        preProxy = instance;
+                    }
+                    preProxyInstances.put(clazz,preProxy);
+                    instance = preProxy;
+                    for (Annotation toProxyAnn: annotations) {
+                        instance = annotationsToProxy.get(toProxyAnn.annotationType()).apply(instance);;
+
+                    }
                 }else if (supplier != null){
                     instance =  supplier.get();
                 }else {
@@ -73,8 +86,10 @@ public class DependencyInstanstatior {
                 }
             }else if(supplier == null){
                     throw new Exception("No supplier found for dependency: " + clazz.getName());
-            }else {
-                instance= supplier.get();
+            }else  {
+                if (instance == null){
+                    instance= supplier.get();
+                }
             }
 
             return (T) instance;
@@ -98,6 +113,7 @@ public class DependencyInstanstatior {
     }
 
     private static  <T> boolean mustBeProxied(Class<T> clazz){
+        List<Annotation> annotations = AnnotationScanner.getAnnotationsOfClass(clazz);
         return clazz.isInterface() || proxyHandlers.containsKey(clazz)
                 || AnnotationScanner.getAnnotationsOfClass(clazz).stream().anyMatch(e-> annotationsToProxy.containsKey(e.annotationType()));
     }

@@ -5,6 +5,7 @@ import ownerszz.libraries.dependency.injection.core.Dependency;
 import ownerszz.libraries.dependency.injection.core.DependencyInstanstatior;
 import ownerszz.libraries.dependency.injection.core.DependencyManager;
 import ownerszz.libraries.dependency.injection.core.DependencyRegistrator;
+import ownerszz.libraries.dependency.injection.core.arguments.ArgumentReader;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,6 +27,7 @@ public class DependencyConfigurer {
     }
 
     private static void readDependenciesFromClass(Class clazz,Object configurer) throws Throwable {
+        ArgumentReader.readArgumentsFromConfigClass(clazz);
         for (Method method: Arrays.stream(clazz.getDeclaredMethods()).filter(e-> e.isAnnotationPresent(Dependency.class)).collect(Collectors.toList())) {
             Dependency dependency = method.getAnnotation(Dependency.class);
             Class<?> toRegister = method.getReturnType();

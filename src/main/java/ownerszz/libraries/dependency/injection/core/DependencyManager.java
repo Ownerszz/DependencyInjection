@@ -73,8 +73,8 @@ public class DependencyManager {
                 ArgumentReader.readArgumentsFromConfigClass(configClass);
             }
             ArgumentReader.readArguments(args);
-            invokeRegistrators();
             readConfigurations();
+            invokeRegistrators();
             runRunnableDependencies();
         }
         long endTime = System.currentTimeMillis();

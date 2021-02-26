@@ -61,6 +61,7 @@ public class DependencyInstanstatior {
 
             if (mustBeProxied(clazz)){
                 //Registered annotations?
+                //TODO: annotationscanner bug
                 List<Annotation> annotations = AnnotationScanner.getAnnotationsOfClass(clazz).stream().filter(e-> annotationsToProxy.containsKey(e.annotationType())).collect(Collectors.toList());
                 if (annotations.size() != 0){
                     Object preProxy;

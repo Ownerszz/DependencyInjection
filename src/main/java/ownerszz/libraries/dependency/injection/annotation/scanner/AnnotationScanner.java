@@ -93,25 +93,23 @@ public class AnnotationScanner {
      * @return Boolean (true, false, null if it takes to much effort {@link #tryResolveSlowClasses()})
      */
     private static Boolean isResolvableAnnotation(Class<?> clazz, int depth) {
-        Boolean success;
+        Boolean success = null;
         int newDept = depth + 1;
         for (Annotation annotation: clazz.getAnnotations()) {
             Boolean exists = resolvedClasses.get(annotation.getClass());
 
             success = Objects.requireNonNullElseGet(exists, () -> isResolvable(annotation.getClass(), newDept));
-            if (success == null){
-                return null;
-            }
-            if (success){
+
+            if (success != null && success){
                 for (Annotation ann: knownAnnotations.get(annotation.getClass())) {
                     knownAnnotations.get(clazz).add(ann);
                 }
                 knownAnnotations.get(clazz).add(annotation);
                 resolvedClasses.put(clazz, true);
-                return true;
+
             }
         }
-        return false;
+        return success;
     }
 
     /**
@@ -231,5 +229,10 @@ public class AnnotationScanner {
         Executors.newCachedThreadPool().submit(()->{
             knownAnnotations.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue().size() == 0);
         });
+    }
+    public static void refresh(){
+        resolvedClasses.clear();
+        knownAnnotations.clear();
+        slowClasses.clear();
     }
 }

@@ -47,6 +47,9 @@ public class DependencyResolver {
      * @param <T> type parameter
      */
     public static<T> void verifyClassDependencies(HashMap<Class,Supplier> ctors,HashMap<Class, Boolean> classes,Class<T> clazz) {
+        if(clazz.getSimpleName() == null || clazz.getSimpleName().isBlank()){
+            return;
+        }
         ContainerLogger.logDebug(logger,"Creating a supplier for class: " + clazz.getName());
         if (scannedClasses == null){
             scannedClasses = classes;
@@ -76,8 +79,16 @@ public class DependencyResolver {
 
             for (Class parameterType:constructor.getParameterTypes()) {
                 Boolean resolved = scannedClasses.get(parameterType);
+
                 if (resolved == null && !ClassUtils.isCollection(parameterType)){
-                    throw new RuntimeException("Unknown dependency in constructor of type: " + parameterType.getSimpleName());
+                    if (AnnotationScanner.isAnnotationPresent(parameterType,Dependency.class)){
+                        if(Arrays.stream(parameterType.getDeclaredFields()).anyMatch(e-> e.getType().equals(clazz))){
+                            throw new RuntimeException("Circular dependency detected between: " + clazz.getName() + " and " + parameterType.getName());
+                        }
+                        verifyClassDependencies(DependencyInstanstatior.getDependencySuppliers(),scannedClasses, parameterType);
+                    }else {
+                        throw new RuntimeException("Unknown dependency in constructor of type: " + parameterType.getSimpleName());
+                    }
                 }
                 if (resolved != null && !resolved){
                     if(Arrays.stream(parameterType.getDeclaredFields()).anyMatch(e-> e.getType().equals(clazz))){

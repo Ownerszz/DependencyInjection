@@ -1,10 +1,7 @@
 package ownerszz.libraries.dependency.injection.core.configuration;
 
 import ownerszz.libraries.dependency.injection.annotation.scanner.AnnotationScanner;
-import ownerszz.libraries.dependency.injection.core.Dependency;
-import ownerszz.libraries.dependency.injection.core.DependencyInstanstatior;
-import ownerszz.libraries.dependency.injection.core.DependencyManager;
-import ownerszz.libraries.dependency.injection.core.DependencyRegistrator;
+import ownerszz.libraries.dependency.injection.core.*;
 import ownerszz.libraries.dependency.injection.core.arguments.ArgumentReader;
 
 import java.lang.reflect.InvocationTargetException;
@@ -43,8 +40,8 @@ public class DependencyConfigurer {
                 }
                 try {
                     return method.invoke(configurer,args);
-                } catch (Throwable throwable) {
-                    throw new RuntimeException(throwable.getCause());
+                } catch (Throwable e) {
+                    throw ExceptionFlipper.flipException(e);
                 }
             };
             DependencyManager.getInstance().registerDependency(toRegister,instantiator,dependency);

@@ -41,6 +41,7 @@ public class ClassScanner {
         }
         for (Class clazz: temp) {
             try {
+
                 Boolean resolvable =AnnotationScanner.isResolvable(clazz,1);
                 if (resolvable!= null && resolvable){
                     classes.add(clazz);

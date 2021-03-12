@@ -62,18 +62,22 @@ public class AnnotationScanner {
                 //scan class annotations
                 Boolean success;
                 for (Class interfaze: clazz.getInterfaces()) {
-                    Boolean exists = resolvedClasses.get(interfaze);
-                    int newDept = depth++;
-                    success = Objects.requireNonNullElseGet(exists, () -> isResolvable(interfaze, newDept));
-                    if (success){
-                        for (Annotation annotation: knownAnnotations.get(interfaze)) {
-                            knownAnnotations.get(clazz).add(annotation);
+                    try {
+                        Boolean exists = resolvedClasses.get(interfaze);
+                        int newDept = depth++;
+                        success = Objects.requireNonNullElseGet(exists, () -> isResolvable(interfaze, newDept));
+                        if (success){
+                            for (Annotation annotation: knownAnnotations.get(interfaze)) {
+                                knownAnnotations.get(clazz).add(annotation);
+                            }
+                            if (interfaze.isAnnotation()){
+                                //knownAnnotations.get(clazz).add(interfaze);
+                            }
+                            resolvedClasses.put(clazz, true);
+                            return true;
                         }
-                        if (interfaze.isAnnotation()){
-                            //knownAnnotations.get(clazz).add(interfaze);
-                        }
-                        resolvedClasses.put(clazz, true);
-                        return true;
+                    }catch (Throwable ignored){
+
                     }
                 }
                 if (isResolvableAnnotation(clazz, depth)) return true;
@@ -96,18 +100,23 @@ public class AnnotationScanner {
         Boolean success = null;
         int newDept = depth + 1;
         for (Annotation annotation: clazz.getAnnotations()) {
-            Boolean exists = resolvedClasses.get(annotation.getClass());
+            try {
+                Boolean exists = resolvedClasses.get(annotation.getClass());
 
-            success = Objects.requireNonNullElseGet(exists, () -> isResolvable(annotation.getClass(), newDept));
+                success = Objects.requireNonNullElseGet(exists, () -> isResolvable(annotation.getClass(), newDept));
 
-            if (success != null && success){
-                for (Annotation ann: knownAnnotations.get(annotation.getClass())) {
-                    knownAnnotations.get(clazz).add(ann);
+                if (success != null && success){
+                    for (Annotation ann: knownAnnotations.get(annotation.getClass())) {
+                        knownAnnotations.get(clazz).add(ann);
+                    }
+                    knownAnnotations.get(clazz).add(annotation);
+                    resolvedClasses.put(clazz, true);
+
                 }
-                knownAnnotations.get(clazz).add(annotation);
-                resolvedClasses.put(clazz, true);
+            }catch (Throwable ingored){
 
             }
+
         }
         return success;
     }
@@ -143,6 +152,7 @@ public class AnnotationScanner {
      * @return true if annotation is present
      */
     public static boolean isAnnotationPresent(Class clazz,Class annotation){
+
         return knownAnnotations.get(clazz).stream().anyMatch(e -> e.annotationType().equals(annotation));
     }
 

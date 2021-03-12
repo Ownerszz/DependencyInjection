@@ -8,14 +8,13 @@ import net.bytebuddy.implementation.bind.annotation.*;
 import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
 import org.objenesis.instantiator.annotations.Instantiator;
 import ownerszz.libraries.dependency.injection.core.DependencyInstanstatior;
+import ownerszz.libraries.dependency.injection.core.ExceptionFlipper;
 
 import java.beans.Transient;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -39,25 +38,29 @@ public class ColdDependency {
     }
 
     @RuntimeType
-    public Object invoke(@This Object proxy, @Origin String methodName, @AllArguments Object[] args) throws Exception {
+    public Object invoke(@This Object proxy, @Origin String methodName, @AllArguments Object[] args) throws Throwable {
+        try {
+            Class[] argTypes = new Class[args.length];
+            for (int i = 0; i < args.length; i++) {
+                argTypes[i] = args[i].getClass();
+            }
+            Optional<Method> foundMethod = Arrays.stream(dependencyType.getDeclaredMethods())
+                    .filter(e-> methodName.contains(e.getName())
+                            && Arrays.equals(argTypes,e.getParameterTypes()))
+                    .findFirst();
+            if (foundMethod.isEmpty()){
+                throw new NoSuchMethodException();
+            }
 
-        Class[] argTypes = new Class[args.length];
-        for (int i = 0; i < args.length; i++) {
-            argTypes[i] = args[i].getClass();
-        }
-        Optional<Method> foundMethod = Arrays.stream(dependencyType.getDeclaredMethods())
-                .filter(e-> methodName.contains(e.getName())
-                        && Arrays.equals(argTypes,e.getParameterTypes()))
-                .findFirst();
-        if (foundMethod.isEmpty()){
-            throw new NoSuchMethodException();
+            Method toInvoke = foundMethod.get();
+            Object impl = dependency.get();
+            Object result = toInvoke.invoke(impl,args);
+            updateColdDependencyFieldsToMatchImpl(proxy);
+            return result;
+        }catch (Throwable e){
+            throw ExceptionFlipper.flipException(e);
         }
 
-        Method toInvoke = foundMethod.get();
-        Object impl = dependency.get();
-        Object result = toInvoke.invoke(impl,args);
-        updateColdDependencyFieldsToMatchImpl(proxy);
-        return result;
     }
 
     private void updateColdDependencyFieldsToMatchImpl(Object proxy) throws Exception {

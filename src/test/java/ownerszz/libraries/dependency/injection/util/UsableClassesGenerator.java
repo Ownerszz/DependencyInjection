@@ -10,7 +10,9 @@ public class UsableClassesGenerator {
     public static HashMap<Class, Boolean> generateClasses() throws Throwable {
         HashMap<Class, Boolean> temp = new HashMap<>();
         for (Class clazz: ClassScanner.scan()) {
-            if (!clazz.getSimpleName().contains("Non")){
+            String clazzName = clazz.getSimpleName().split("\\$")[0];
+            if (clazzName.contains("Non") || clazzName.endsWith("Test") || clazzName.isEmpty()){
+            }else {
                 temp.putIfAbsent(clazz, false);
             }
         }
